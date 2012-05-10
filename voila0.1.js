@@ -7,6 +7,7 @@
 		Args:
 			apiKey: voila apikey
 			contentId: id of the piece of content
+			contentUri: URI of the piece of content
 			hoverItems: class / id's for the list of content
 			host: eg. https://voila-stage.metabroadcast.com
 			trackingId: original tracking id
@@ -24,6 +25,10 @@
 		}
 		
 		this.contentId = args.contentId;
+		this.contentUri = null;
+		if(args.contentUri){
+			this.contentUri = args.contentUri;
+		}
 
 		this.url = 'https://voila.metabroadcast.com';
 		if(args.host){
@@ -230,6 +235,12 @@
 			}
 			inputs.push({name: 'x-purple-id', value: v.contentId});
 		}
+		if(v.contentUri){
+			if(!inputs){
+                                inputs = [];
+                        }
+                        inputs.push({name: 'x-purple-external-uri', value: v.contentUri});
+		}
 		var form = v.createForm(v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=page-load', 'voila-pageLog', inputs);
 		try {
 		  form.addEventListener("submit", formSubmit);
@@ -258,6 +269,12 @@
 			}
 			inputs.push({name: 'x-purple-id', value: contentId});
 		}
+		if(v.contentUri){
+                        if(!inputs){
+                                inputs = [];
+                        }
+                        inputs.push({name: 'x-purple-external-uri', value: v.contentUri});
+                }
 		var form = v.createForm(v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=tv-listings-hover', 'voila-itemLog', inputs);
 		try {
 		  form.addEventListener("submit", formSubmit);
@@ -345,18 +362,15 @@
 	}
 	
 	Voila.prototype.cookieOptOut = function(){
-		var exDate = new Date();
+		var url = v.url+'/'+v.version+'/cookieOptOut/set';
+		ajax.open("GET",url);
+		ajax.send();
 	}
 	
 	Voila.prototype.cookieOptIn = function(){
-	
-	}
-	
-	Voila.prototype.cookieStatus = function(){
-		if(getCookie('purple')){
-			return true;
-		}
-		return false;
+		var url = v.url+'/'+v.version+'/cookieOptOut/remove';
+		ajax.open("GET",url);
+		ajax.send();
 	}
 	
 	var getCookie = function(c_name){
