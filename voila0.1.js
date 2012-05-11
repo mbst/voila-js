@@ -24,10 +24,11 @@
 			this.apiKey = args.apiKey;
 		}
 		
-		this.contentId = args.contentId;
-		this.contentUri = null;
-		if(args.contentUri){
-			this.contentUri = args.contentUri;
+		this.content = null;
+		if(args.contentId){
+			this.content = args.contentId;
+		} else if(args.contentUri){
+			this.content = args.contentUri;
 		}
 
 		this.url = 'https://voila.metabroadcast.com';
@@ -157,15 +158,19 @@
 	}
 	
 	Voila.prototype.setContentId = function(id){
-		this.contentId = id;
+		this.content = id;
 	}
 	
-	Voila.prototype.getContent = function(callback, contentId, annotations){
+	Voila.prototype.setContentUri = function(uri){
+		this.content = uri;
+	}
+	
+	Voila.prototype.getContent = function(callback, content, annotations){
 		var v = this;
 		
-		var content = v.contentId;
-		if(contentId){
-			content = contentId;
+		var getContent = v.content;
+		if(content){
+			getContent = content;
 		}
 		
 		var annotate = null;
@@ -185,7 +190,16 @@
 				}
 			}
 		}
-		var url = v.url+'/'+v.version+'/content?apiKey='+v.apiKey+'&id='+content;
+		
+		var url = v.url+'/'+v.version+'/content?apiKey='+v.apiKey;
+		
+		if(getContent.indexOf('http') !== -1){
+			url += '&uri='+getContent;
+		} else {
+			url += '&id='+getContent;
+		}
+		
+		
 		if(annotate){
 			url += '&annotations='+annotate;
 		}
@@ -214,7 +228,12 @@
 				callback('error');
 			}
 		}
-		var url = v.url+'/'+v.version+'/tracking?apiKey='+v.apiKey+'&contentId='+v.contentId;
+		var url = v.url+'/'+v.version+'/tracking?apiKey='+v.apiKey;
+		if(v.content.indexOf('http') !== -1){
+			url += '&contentUri='+v.content;
+		} else {
+			url += '&contentId='+v.content;
+		}
 		if(v.parent){
 			url += '&parentTrackingId='+v.parent;
 		}
@@ -229,18 +248,17 @@
 		if(v.trackingId){
 			inputs = [{name: 'tracking_id', value: v.trackingId}];
 		}
-		if(v.contentId){
+		if(v.content){
 			if(!inputs){
 				inputs = [];
 			}
-			inputs.push({name: 'x-purple-id', value: v.contentId});
+			if(v.content.indexOf('http') !== -1){
+				inputs.push({name: 'x-purple-external-uri', value: v.content});
+			} else {
+				inputs.push({name: 'x-purple-id', value: v.content});
+			}
 		}
-		if(v.contentUri){
-			if(!inputs){
-                                inputs = [];
-                        }
-                        inputs.push({name: 'x-purple-external-uri', value: v.contentUri});
-		}
+
 		var form = v.createForm(v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=page-load', 'voila-pageLog', inputs);
 		try {
 		  form.addEventListener("submit", formSubmit);
@@ -250,31 +268,33 @@
 		form.submit();
 	}
 	
-	Voila.prototype.logHover = function(callback, contentId){
+	Voila.prototype.logHover = function(callback, content){
 		var v = this;
 		var inputs = null;
 		if(v.trackingId){
 			inputs = [{name: 'tracking_id', value: v.trackingId}];
 		}
-		if(!contentId){
-			if(v.contentId){
+		if(!content){
+			if(v.content){
 				if(!inputs){
 					inputs = [];
 				}
-				inputs.push({name: 'x-purple-id', value: v.contentId});
+				if(v.content.indexOf('http') !== -1){
+					inputs.push({name: 'x-purple-external-uri', value: v.content});
+				} else {
+					inputs.push({name: 'x-purple-id', value: v.content});
+				}
 			}
 		} else {
 			if(!inputs){
 				inputs = [];
 			}
-			inputs.push({name: 'x-purple-id', value: contentId});
+			if(content.indexOf('http') !== -1){
+				inputs.push({name: 'x-purple-external-uri', value: content});
+			} else {
+				inputs.push({name: 'x-purple-id', value: content});
+			}
 		}
-		if(v.contentUri){
-                        if(!inputs){
-                                inputs = [];
-                        }
-                        inputs.push({name: 'x-purple-external-uri', value: v.contentUri});
-                }
 		var form = v.createForm(v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=tv-listings-hover', 'voila-itemLog', inputs);
 		try {
 		  form.addEventListener("submit", formSubmit);
@@ -284,13 +304,21 @@
 		form.submit();
 	}
 	
-	Voila.prototype.watching = function(contentId){
+	Voila.prototype.watching = function(content){
 		var v = this;
-		if(v.contentId){
-			inputs = [{name: 'id', value: v.contentId}];
+		if(v.content){
+			if(v.content.indexOf('http') !== -1){
+				inputs = [{name: 'uri', value: v.content}];
+			} else {
+				inputs = [{name: 'id', value: v.content}];
+			}
 		}
-		if(contentId){
-			inputs = [{name: 'id', value: contentId}];
+		if(content){
+			if(content.indexOf('http') !== -1){
+				inputs = [{name: 'uri', value: content}];
+			} else {
+				inputs = [{name: 'id', value: content}];
+			}
 		}
 		var form = v.createForm(v.url+'/'+v.version+'/watching/me/@self?apiKey='+config.apiKey, 'voila-watching', inputs);
 		try {
@@ -301,17 +329,25 @@
 		form.submit();
 	}
 	
-	Voila.prototype.notWatching = function(contentId){
+	Voila.prototype.notWatching = function(content){
 		var v = this;
 		var inputs = [{name: 'http_action', value: 'DELETE'}];
-		var content = null;
-		if(v.contentId){
-			content = v.contentId;
+		var getContent = null;
+		if(v.content){
+			getContent = v.content;
 		}
-		if(contentId){
-			content = contentId;
+		if(content){
+			getContent = content;
 		}
-		var form = v.createForm(v.url+'/'+v.version+'/watching/me/@self/contentId:'+config.contentId+'?apiKey='+config.apiKey, 'voila-watching', inputs);
+		var url = v.url+'/'+v.version+'/watching/me/@self/';
+		if(getcontent.indexOf('http') !== -1){
+			url += 'uri:'+getContent;
+		} else {
+			url += 'id:'+getContent;
+		}
+		url += '?apiKey='+config.apiKey;
+		
+		var form = v.createForm(url, 'voila-watching', inputs);
 		try {
 		  form.addEventListener("submit", formSubmit);
 		} catch(e) {
@@ -369,7 +405,8 @@
 		}
 
 		ajax.onreadystatechange = function(data){
-			if(ajax.readyState === 4){
+			console.log(ajax);
+			if(ajax.readyState === 2){
 				callback(null, true);
 			}
 		}
@@ -379,7 +416,7 @@
 		ajax.send();
 	}
 	
-	Voila.prototype.cookieOptIn = function(){
+	Voila.prototype.cookieOptIn = function(callback){
 		var v = this;
 		var ajax = new jXHR();
 		ajax.onerrer = function(msg,url){
@@ -387,7 +424,7 @@
 		}
 
 		ajax.onreadystatechange = function(data){
-			if(ajax.readyState === 4){
+			if(ajax.readyState === 2){
 				callback(null, true);
 			}
 		}
@@ -397,7 +434,7 @@
 		ajax.send();
 	}
 	
-	Voila.prototype.cookieOptStatus = function(){
+	Voila.prototype.cookieOptStatus = function(callback){
 		var v = this;
 		var ajax = new jXHR();
 		ajax.onerrer = function(msg,url){
