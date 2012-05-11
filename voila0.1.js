@@ -361,32 +361,60 @@
 		ajax.send();
 	}
 	
-	Voila.prototype.cookieOptOut = function(){
+	Voila.prototype.cookieOptOut = function(callback){
+		var v = this;
+		var ajax = new jXHR();
+		ajax.onerrer = function(msg,url){
+			callback(msg);
+		}
+
+		ajax.onreadystatechange = function(data){
+			if(ajax.readyState === 4){
+				callback(null, true);
+			}
+		}
+	
 		var url = v.url+'/'+v.version+'/cookieOptOut/set';
 		ajax.open("GET",url);
 		ajax.send();
 	}
 	
 	Voila.prototype.cookieOptIn = function(){
+		var v = this;
+		var ajax = new jXHR();
+		ajax.onerrer = function(msg,url){
+			callback(msg);
+		}
+
+		ajax.onreadystatechange = function(data){
+			if(ajax.readyState === 4){
+				callback(null, true);
+			}
+		}
+	
 		var url = v.url+'/'+v.version+'/cookieOptOut/remove';
 		ajax.open("GET",url);
 		ajax.send();
 	}
 	
-	var getCookie = function(c_name){
-		var i,x,y,ARRcookies=document.cookie.split(";"),noCookies=ARRcookies.length;
-		for(i=noCookies;i--;) {
-			x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
-			y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
-			x=x.replace(/^\s+|\s+$/g,"");
-			if(x==c_name) {
-				return unescape(y);
-				break;
+	Voila.prototype.cookieOptStatus = function(){
+		var v = this;
+		var ajax = new jXHR();
+		ajax.onerrer = function(msg,url){
+			callback(msg);
+		}
+
+		ajax.onreadystatechange = function(data){
+			if(ajax.readyState === 4){
+				callback(null, data);
 			}
 		}
+	
+		var url = v.url+'/'+v.version+'/cookieOptOut/status?callback=?';
 		
-		return false;
-	};
+		ajax.open("GET", url);
+		ajax.send();
+	}
 	
 	var formSubmit = function(callback){
 		//console.log('submitted');
