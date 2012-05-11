@@ -374,7 +374,7 @@
 			}
 		}
 	
-		var url = v.url+'/'+v.version+'/cookieOptOut/set';
+		var url = v.url+'/'+v.version+'/optout/set?apiKey='+v.apiKey;
 		ajax.open("GET",url);
 		ajax.send();
 	}
@@ -392,7 +392,7 @@
 			}
 		}
 	
-		var url = v.url+'/'+v.version+'/cookieOptOut/remove';
+		var url = v.url+'/'+v.version+'/optout/remove?apiKey='+v.apiKey;
 		ajax.open("GET",url);
 		ajax.send();
 	}
@@ -410,7 +410,7 @@
 			}
 		}
 	
-		var url = v.url+'/'+v.version+'/cookieOptOut/status?callback=?';
+		var url = v.url+'/'+v.version+'/optout?apiKey='+v.apiKey+'&callback=?';
 		
 		ajax.open("GET", url);
 		ajax.send();
