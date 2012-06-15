@@ -31,7 +31,7 @@
 			content: String - id or URI of the piece of content
 			hoverItems: Array - class / id's for the list of content
 			hoverTimeout: Int - milliseconds to wait before the hover event is fired
-			host: String - eg. https://voila-stage.metabroadcast.com
+			host: String - eg. https://voila-stage.metabroadcast.com 
 			trackingId: String - original tracking id
 			version: String - api version
 			logging: Bool - whether to enable logging or not
