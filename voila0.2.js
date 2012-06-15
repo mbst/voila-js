@@ -249,12 +249,15 @@
 				}
 			}
 		}
-
-		if(v.contentType === 1){
-			url += '&contentUri='+v.content;
-		} else {
-			url += '&contentId='+v.content;
+		
+		if(v.content){
+			if(v.content.indexOf('http') !== -1){
+				url += '&contentUri='+v.content;
+			} else {
+				url += '&contentId='+v.content;
+			}
 		}
+		
 		if(v.parent){
 			url += '&parentTrackingId='+v.parent;
 		}
