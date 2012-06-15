@@ -1,197 +1,195 @@
-(function(name, definition){
-	if (typeof module != 'undefined') module.exports = definition()
-	else if (typeof define == 'function' && typeof define.amd == 'object') define(definition)
-	else this[name] = definition()
+/**
+ * Voila Javascript Client API
+ * https://github.com/mbst/voila-js
+ * Provided by MetaBroadcast
+ * v0.2
+ *
+ * Plugins and licenses.
+ * ---------------------
+ * Qwery - A Blazing Fast query selector engine
+ * https://github.com/ded/qwery
+ * copyright Dustin Diaz & Jacob Thornton 2011
+ * MIT License
+ * ---------------------
+ * jXHR.js (JSON-P XHR)
+ * v0.1 © Kyle Simpson
+ * MIT License
+ */
+
+(function (name, definition) {
+  if (typeof module !== 'undefined'){
+  	module.exports = definition();
+  } else if (typeof define === 'function' && typeof define.amd === 'object'){
+  	define(definition);
+  } else {
+    this[name] = definition();
+  }
 })('Voila', function(){
 	/*
 		Args:
-			apiKey: voila apikey
-			contentId: id of the piece of content
-			contentUri: URI of the piece of content
-			hoverItems: class / id's for the list of content
-			host: eg. https://voila-stage.metabroadcast.com
-			trackingId: original tracking id
+			apiKey: String - voila apikey
+			content: String - id or URI of the piece of content
+			hoverItems: Array - class / id's for the list of content
+			hoverTimeout: Int - milliseconds to wait before the hover event is fired
+			host: String - eg. https://voila-stage.metabroadcast.com
+			trackingId: String - original tracking id
+			version: String - api version
+			logging: Bool - whether to enable logging or not
+		callback: Function - returns object
 	*/
-	var Voila = function(args){
-		var v = this;
-		var vers = '1.0';
-		if(args.version){
-			var vers = args.version;
-		}
-		this.version = vers;
-		this.apiKey = null;
-		if(args.apiKey){
-			this.apiKey = args.apiKey;
-		}
-		
-		this.content = null;
-		if(args.contentId){
-			this.content = args.contentId;
-		} else if(args.contentUri){
-			this.content = args.contentUri;
-		}
-
-		this.url = 'https://voila.metabroadcast.com';
-		if(args.host){
-			this.url = 'https://'+args.host;
-		}
-		this.hoverItems = [];
-		if(args.hoverItems){
-			for(var i = 0, ii = args.hoverItems.length; i<ii; i++){
-				var eles = qwery(args.hoverItems[i]);
-				for(var j = 0, jj = eles.length; j<jj; j++){
-					this.hoverItems.push(eles[j]);
-					try {
-					  this.hoverItems[this.hoverItems.length-1].addEventListener('mouseover', mouseOver);
-					  this.hoverItems[this.hoverItems.length-1].addEventListener('mouseout', mouseOut);
-					} catch(e) {
-					  this.hoverItems[this.hoverItems.length-1].attachEvent('mouseover', mouseOver);
-					  this.hoverItems[this.hoverItems.length-1].attachEvent('mouseout', mouseOut);
-					}
-				}
-			}
-		}
-		
-		this.trackingId = null;
-		if(args.trackingId){
-			this.parent = args.trackingId;
-		}
-		
-		var hovering = null;
-		function mouseOver(e){
+	var Voila = function(args, callback){
+		var v = this,				// Reference to self
+			eles = null,			// Placeholder for page element
+			i = 0,					// Placeholder for array length loops
+			j = 0,					// Placeholder for array length subloops
+			hovering = null,		// Holder for hovering timeout
+			hoverTimeout = 250;	// Hover timeout default
+			
+		/**
+		 *	Inner functions for use further down the script.
+		 */
+		 if(args && args.hoverTimeout){
+			 hoverTimeout = args.hoverTimeout;
+		 }
+		 function mouseOver(e){
 			hovering = setTimeout(function(){
-				var contentId = null;
+				var content = null;
 				var attributes = e.target.attributes;
-				for(var i = 0, ii = attributes.length; i<ii; i++){
-					if(attributes[i].nodeName === 'data-contentid'){
-						contentId = attributes[i].nodeValue;
+				for(i = attributes.length; i--;){
+					if(attributes[i].nodeName === 'data-content'){
+						content = attributes[i].nodeValue;
 					}
 				}
-				v.logHover(contentId, function(error, success){
-					if(error){
-						//console.log(error);
+				v.logHover(content, function(e){
+					if(e.error){
+						console.log(e.error);
 					} else {
-						//console.log(success);
+						console.log(e.success);
 					}
 				});
-			}, 250);
+			}, hoverTimeout);
 		}
 		
 		function mouseOut(){
 			clearTimeout(hovering);
 		}
 		
-		this.createIframe();
-	}
-	
-	Voila.prototype.pageLoad = function(callback){
-		var v = this;
-		v.getTracking(function(error, success){
-			if(error){
-				//console.log(error);
+			
+		/**
+		 *	Voila parameters
+		 */
+		 
+		// Set apiKey
+		this.apiKey = null;
+		if(args && args.apiKey){
+			this.apiKey = args.apiKey;
+		}
+		
+		// Set the version to 1.0
+		this.version = '1.0';
+		// If another version is supplied overwrite
+		if(args && args.version){
+			this.version = args.version;
+		}
+
+		
+		// Set content contentId (0) / contentUri (1)
+		this.content = null;
+		if(args && args.content){
+			this.content = args.content;
+		}
+
+		// Set url of host voila
+		this.url = 'https://voila.metabroadcast.com';
+		if(args && args.host){
+			if(args && args.host.indexOf('http') === -1){
+				this.url = 'https://'+args.host;
 			} else {
-				//console.log('done');
-				callback(null, success);
-				v.logLoad();
-			}
-		});
-	}
-	
-	Voila.prototype.createIframe = function(){
-		if(qwery('#voilaframe').length !== 0){
-			this.deleteIframe();
-		}
-		var frame = document.createElement('iframe');
-		frame.setAttribute('id','voilaframe');
-		frame.style.width = 0;
-		frame.style.height = 0;
-		frame.style.visibility='hidden';
-		frame.style.borderWidth=0;
-		frame.style.position='absolute';
-		frame.style.left=-9999+'px';
-		frame.style.top=-9999+'px';
-		document.body.appendChild(frame);
-	}
-	
-	Voila.prototype.deleteIframe = function(){
-		document.body.removeChild(qwery('#voilaframe')[0]);
-	}
-	
-	Voila.prototype.createForm = function(url, id, inputs){
-		var v = this;
-		var form = document.createElement('form');
-		form.setAttribute('id', id);
-		form.setAttribute('target', 'voilaframe');
-		form.setAttribute('method', 'POST');
-		form.setAttribute('action', url);
-		form.style.width = 0;
-		form.style.height = 0;
-		form.style.visibility='hidden';
-		form.style.borderWidth=0;
-		form.style.position='absolute';
-		form.style.left=-9999+'px';
-		form.style.top=-9999+'px';
-		
-		if(inputs){
-			for(var i = 0, ii = inputs.length; i<ii; i++){
-				form.appendChild(v.createInput(inputs[i]));
+				this.url = args.host;
 			}
 		}
-		return form;
-	}
-	
-	Voila.prototype.deleteForm = function(id){
-		document.body.removeChild(qwery('#'+id)[0]);
-	}
-	
-	/*
-		Args:
-			name
-			value
-	*/
-	Voila.prototype.createInput = function(args){
-		var input = document.createElement('input');
-		input.setAttribute('type','hidden');
-		input.setAttribute('name', args.name);
-		input.setAttribute('value', args.value);
-		return input;
-	}
-	
-	Voila.prototype.setContentId = function(id){
-		this.content = id;
-	}
-	
-	Voila.prototype.setContentUri = function(uri){
-		this.content = uri;
-	}
-	
-	Voila.prototype.getContent = function(callback, content, annotations){
-		var v = this;
 		
-		var getContent = v.content;
-		if(content){
-			getContent = content;
-		}
-		
-		var annotate = null;
-		if(annotations){
-			annotate = annotations.join(',');
-		}
-		
-		var ajax = new jXHR();
-		ajax.onerrer = function(msg,url){
-			callback(msg);
-		}
-		
-		ajax.onreadystatechange = function(data){
-			if(ajax.readyState === 4){
-				if(data.content){
-					callback(null, data.content);
+		// Add event listeners to items on page
+		this.hoverItems = [];
+		if(args && args.hoverItems){
+			for(i = args.hoverItems.length; i--;){
+				eles = qwery(args.hoverItems[i]);
+				for(j = eles.length; j--;){
+					try {
+					  eles[j].addEventListener('mouseover', mouseOver);
+					  eles[j].addEventListener('mouseout', mouseOut);
+					} catch(e) {
+					  eles[j].attachEvent('mouseover', mouseOver);
+					  eles[j].attachEvent('mouseout', mouseOut);
+					}
+					this.hoverItems.push(eles[j]);
 				}
 			}
 		}
 		
-		var url = v.url+'/'+v.version+'/content?apiKey='+v.apiKey;
+		// Add tracking id
+		this.trackingId = null;
+		if(args && args.trackingId){
+			this.parent = args.trackingId;
+		}
+		
+		this.referrer = null;
+		if(window && window.location.href){
+			this.referrer = window.location.href;
+		}
+		
+		this.logging = true;
+		if(args && args.logging){
+			this.logging = args.logging;
+		}
+	};
+	
+	/**
+	 *	 Log page load
+	 */
+	Voila.prototype.pageLoad = function(callback){
+		var v = this;
+		v.getTracking(function(e){
+			if(e.error){
+				//console.log(e.error);
+			} else {
+				//console.log('done');
+				if(callback){
+					callback(e);
+				}
+				if(v.logging === true){
+					v.logLoad();
+				}
+			}
+		});
+	};
+		
+	Voila.prototype.setContentId = function(id){
+		this.content = id;
+		this.contentType = 0;
+	};
+	
+	Voila.prototype.setContentUri = function(uri){
+		this.content = uri;
+		this.contentType = 1;
+	};
+	
+	/**
+	 *	Get a piece of content
+	 *	Args:
+	 *		content
+	 *		annotations
+	 */
+	Voila.prototype.getContent = function(args, callback){
+		var v = this,
+			getContent = v.content,
+			ajax = new jXHR(),
+			url = v.url+'/'+v.version+'/content?apiKey='+v.apiKey;
+			
+		
+		if(args && args.content){
+			getContent = args.content;
+		}
 		
 		if(getContent.indexOf('http') !== -1){
 			url += '&uri='+getContent;
@@ -199,37 +197,59 @@
 			url += '&id='+getContent;
 		}
 		
-		
-		if(annotate){
-			url += '&annotations='+annotate;
+		if(args && args.annotations){
+			url += '&annotations='+args.annotations.join(',');
 		}
+		
+		ajax.onerror = function(msg,url){
+			if(callback){
+				callback({error: msg});
+			}
+		}
+		
+		ajax.onreadystatechange = function(data){
+			if(ajax.readyState === 4){
+				if(callback){
+					callback({success: data});
+				}
+			}
+		}
+	
 		url += '&callback=?';
 		ajax.open("GET",url);
 		ajax.send();
-	}
+	};
 	
 	Voila.prototype.getTracking = function(callback){
-		var v = this;
-		var ajax = new jXHR();
-		ajax.onerrer = function(msg,url){
-			callback(msg);
+		var v = this,
+			ajax = new jXHR(),
+			url = v.url+'/'+v.version+'/tracking?apiKey='+v.apiKey;;
+			
+		ajax.onerror = function(msg,url){
+			if(callback){
+				callback({error: msg});
+			}
 		}
 		
 		ajax.onreadystatechange = function(data){
 			if(ajax.readyState === 2 && ajax.status !== 200){
-				callback(ajax);
+				//callback(ajax);
 			}
 			if(ajax.readyState === 4){
 				if(data.tracking_id){
 					v.trackingId = data.tracking_id;
-					callback(null, data.tracking_id);
+					if(callback){
+						callback({success: data.tracking_id});
+					}
 					return;
 				}
-				callback('error');
+				if(callback){
+					callback({error: 'No tracking id found'});
+				}
 			}
 		}
-		var url = v.url+'/'+v.version+'/tracking?apiKey='+v.apiKey;
-		if(v.content.indexOf('http') !== -1){
+
+		if(v.contentType === 1){
 			url += '&contentUri='+v.content;
 		} else {
 			url += '&contentId='+v.content;
@@ -240,11 +260,17 @@
 		url += '&callback=?';
 		ajax.open("GET",url);
 		ajax.send();
-	}
+	};
 	
 	Voila.prototype.logLoad = function(callback){
-		var v = this;
-		var inputs = null;
+		var v = this,
+			inputs = null,
+			form = null,
+			myIFrame = document.getElementById('voilaframe'),
+			content = null;
+		
+		createIframe();
+			
 		if(v.trackingId){
 			inputs = [{name: 'tracking_id', value: v.trackingId}];
 		}
@@ -258,263 +284,296 @@
 				inputs.push({name: 'x-purple-id', value: v.content});
 			}
 		}
+		
+		if(v.referrer){
+			inputs.push({name: 'referrer', value: v.referrer});
+		}
 
-		var form = v.createForm(v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=page-load', 'voila-pageLog', inputs);
-		try {
-		  form.addEventListener("submit", formSubmit);
-		} catch(e) {
-		  form.attachEvent("submit", formSubmit); //Internet Explorer
-		}
+		form = createForm({url: v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=page-load', id: 'voila-pageLog', inputs: inputs});
+		
 		form.submit();
-	}
+		if(callback){
+			callback({success: 'Submitted. Please check your browsers logs to confirm successful logging'});
+		}
+	};
 	
-	Voila.prototype.logHover = function(callback, content){
-		var v = this;
-		var inputs = null;
+	Voila.prototype.logHover = function(args, callback){
+		var v = this,
+			inputs = [],
+			form = null,
+			content = v.content;
+			
+		createIframe();
+			
 		if(v.trackingId){
-			inputs = [{name: 'tracking_id', value: v.trackingId}];
+			inputs.push({name: 'tracking_id', value: v.trackingId});
 		}
-		if(!content){
-			if(v.content){
-				if(!inputs){
-					inputs = [];
-				}
-				if(v.content.indexOf('http') !== -1){
-					inputs.push({name: 'x-purple-external-uri', value: v.content});
-				} else {
-					inputs.push({name: 'x-purple-id', value: v.content});
-				}
-			}
+		
+		if(args && args.content){
+			content = args.content;
+		}
+		
+		if(content.indexOf('http') !== -1){
+			inputs.push({name: 'x-purple-external-uri', value: content});
 		} else {
-			if(!inputs){
-				inputs = [];
-			}
-			if(content.indexOf('http') !== -1){
-				inputs.push({name: 'x-purple-external-uri', value: content});
-			} else {
-				inputs.push({name: 'x-purple-id', value: content});
-			}
+			inputs.push({name: 'x-purple-id', value: content});
 		}
-		var form = v.createForm(v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=tv-listings-hover', 'voila-itemLog', inputs);
-		try {
-		  form.addEventListener("submit", formSubmit);
-		} catch(e) {
-		  form.attachEvent("submit", formSubmit); //Internet Explorer
+				
+		if(v.referrer){
+			inputs.push({name: 'referrer', value: v.referrer});
 		}
+		
+		form = createForm({url: v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=tv-listings-hover', id: 'voila-itemLog', inputs: inputs});
+		
 		form.submit();
-	}
+		if(callback){
+			callback({success: 'Submitted. Please check your browsers logs to confirm successful logging'});
+		}
+	};
 	
-	Voila.prototype.watching = function(content){
-		var v = this;
-		if(v.content){
-			if(v.content.indexOf('http') !== -1){
-				inputs = [{name: 'uri', value: v.content}];
-			} else {
-				inputs = [{name: 'id', value: v.content}];
-			}
+	Voila.prototype.watching = function(args, callback){
+		var v = this,
+			form = null,
+			content = v.content;
+			
+		createIframe();
+			
+		if(args && args.content){
+			content = args.content;
 		}
-		if(content){
-			if(content.indexOf('http') !== -1){
-				inputs = [{name: 'uri', value: content}];
-			} else {
-				inputs = [{name: 'id', value: content}];
-			}
-		}
-		var form = v.createForm(v.url+'/'+v.version+'/watching/me/@self?apiKey='+config.apiKey, 'voila-watching', inputs);
-		try {
-		  form.addEventListener("submit", formSubmit);
-		} catch(e) {
-		  form.attachEvent("submit", formSubmit); //Internet Explorer
-		}
-		form.submit();
-	}
-	
-	Voila.prototype.notWatching = function(content){
-		var v = this;
-		var inputs = [{name: 'http_action', value: 'DELETE'}];
-		var getContent = null;
-		if(v.content){
-			getContent = v.content;
-		}
-		if(content){
-			getContent = content;
-		}
-		var url = v.url+'/'+v.version+'/watching/me/@self/';
-		if(getcontent.indexOf('http') !== -1){
-			url += 'uri:'+getContent;
+		
+		if(content.indexOf('http') !== -1){
+			inputs = [{name: 'uri', value: content}];
 		} else {
-			url += 'id:'+getContent;
+			inputs = [{name: 'id', value: content}];
 		}
-		url += '?apiKey='+config.apiKey;
 		
-		var form = v.createForm(url, 'voila-watching', inputs);
-		try {
-		  form.addEventListener("submit", formSubmit);
-		} catch(e) {
-		  form.attachEvent("submit", formSubmit); //Internet Explorer
-		}
+		form = createForm({url: v.url+'/'+v.version+'/watching/me/@self?apiKey='+v.apiKey, id: 'voila-watching', inputs: inputs});
+
 		form.submit();
-	}
+		if(callback){
+			callback({success: 'Submitted. Please check your browsers logs to confirm successful logging'});
+		}
+	};
 	
-	Voila.prototype.currentlyWatching = function(callback, contentId){
-		var v = this;
-		
-		var content = null;
-		if(v.contentId){
-			content = v.contentId;
-		}
-		if(contentId){
-			content = contentId;
-		}
-		
-		if(!content){
-			callback('Not watching');
-			return;
+	Voila.prototype.notWatching = function(args, callback){
+		var v = this,
+			inputs = [{name: 'http_action', value: 'DELETE'}],
+			content = v.content,
+			url = v.url+'/'+v.version+'/watching/me/@self/',
+			form = null;
+			
+		createIframe();
+			
+		if(args && args.content){
+			content = args.content;
 		}
 		
-		var ajax = new jXHR();
-		ajax.onerrer = function(msg,url){
-			callback(msg);
+		if(content.indexOf('http') !== -1){
+			url += 'uri:'+content;
+		} else {
+			url += 'id:'+content;
+		}
+		
+		url += '?apiKey='+v.apiKey;
+						
+		form = createForm({url: url, id: 'voila-watching', inputs: inputs});
+		
+		form.submit();
+		if(callback){
+			callback({success: 'Submitted. Please check your browsers logs to confirm successful logging'});
+		}
+	};
+	
+	Voila.prototype.currentlyWatching = function(args, callback){
+		var v = this,
+			content = v.content,
+			ajax = new jXHR(),
+			watching = false,
+			url = v.url+'/'+v.version+'/watching/me/@self?apiKey='+v.apiKey+'&callback=?',
+			i = 0;
+		
+
+		if(args && args.content){
+			content = args.content;
+		}
+				
+		ajax.onerror = function(msg,url){
+			if(callback){
+				callback({error: msg});
+			}
 		}
 
 		ajax.onreadystatechange = function(data){
 			if(ajax.readyState === 4){
 				if(data.watching && data.watching.length > 0){
-					var watching = false;
-					for(var i = 0, ii = data.watching.length; i<ii; i++){
-						if(data.watching[i].target.id.value === content){
+					for(i = data.watching.length; i--;){
+						if(data.watching[i].target.id === content){
 							watching = true;
 							break;
 						}
 					}
-					callback(null, watching);
+					if(callback){
+						callback({success: watching});
+					}
 				}
 			}
 		}
 		
-		var url = v.url+'/'+v.version+'/watching/me/@self?apiKey='+v.apiKey+'&callback=?';
 		ajax.open("GET",url);
 		ajax.send();
-	}
+	};
 	
 	Voila.prototype.cookieOptOut = function(callback){
-		var v = this;
-		var ajax = new jXHR();
-		ajax.onerrer = function(msg,url){
-			callback(msg);
+		var v = this,
+			ajax = new jXHR(),
+			url = v.url+'/'+v.version+'/optout/set?apiKey='+v.apiKey;
+			
+		ajax.onerror = function(msg,url){
+			if(callback){
+				callback({error: msg});
+			}
 		}
 
 		ajax.onreadystatechange = function(data){
-			console.log(ajax);
+			//console.log(ajax.readyState, data);
 			if(ajax.readyState === 2){
-				callback(null, true);
+				if(callback){
+					callback({success: data});
+				}
 			}
 		}
 	
-		var url = v.url+'/'+v.version+'/optout/set?apiKey='+v.apiKey;
 		ajax.open("GET",url);
 		ajax.send();
-	}
+	};
 	
 	Voila.prototype.cookieOptIn = function(callback){
-		var v = this;
-		var ajax = new jXHR();
-		ajax.onerrer = function(msg,url){
-			callback(msg);
+		var v = this,
+			ajax = new jXHR(),
+			url = v.url+'/'+v.version+'/optout/remove?apiKey='+v.apiKey;
+			
+		ajax.onerror = function(msg,url){
+			if(callback){
+				callback({error: msg});
+			}
 		}
 
 		ajax.onreadystatechange = function(data){
+			//console.log(ajax.readyState, data);
 			if(ajax.readyState === 2){
-				callback(null, true);
+				if(callback){
+					callback({success: true});
+				}
 			}
 		}
-	
-		var url = v.url+'/'+v.version+'/optout/remove?apiKey='+v.apiKey;
+
 		ajax.open("GET",url);
 		ajax.send();
-	}
+	};
 	
 	Voila.prototype.cookieOptStatus = function(callback){
-		var v = this;
-		var ajax = new jXHR();
-		ajax.onerrer = function(msg,url){
-			callback(msg);
+		var v = this,
+			ajax = new jXHR(),
+			url = v.url+'/'+v.version+'/optout?apiKey='+v.apiKey+'&callback=?';
+		ajax.onerror = function(msg,url){
+			if(callback){
+				callback({error: msg});
+			}
 		}
 
 		ajax.onreadystatechange = function(data){
+			//console.log(ajax.readyState, data);
 			if(ajax.readyState === 4){
-				callback(null, data);
+				if(callback){
+					callback({success: data});
+				}
 			}
 		}
-	
-		var url = v.url+'/'+v.version+'/optout?apiKey='+v.apiKey+'&callback=?';
 		
 		ajax.open("GET", url);
 		ajax.send();
-	}
-	
-	var formSubmit = function(callback){
-		//console.log('submitted');
-		var myIFrame = document.getElementById('voilaframe');
-		if(myIFrame && myIFrame.contentWindow && myIFrame.contentWindow.document && myIFrame.contentWindow.document.body){
-			var content = myIFrame.contentWindow.document.body.innerHTML;
-			callback(null, content);
-		}
-		v.createIframe();
 	};
 	
-	
-	/*!
-	 * contentloaded.js
-	 *
-	 * Author: Diego Perini (diego.perini at gmail.com)
-	 * Summary: cross-browser wrapper for DOMContentLoaded
-	 * Updated: 20101020
-	 * License: MIT
-	 * Version: 1.2
-	 *
-	 * URL:
-	 * http://javascript.nwbox.com/ContentLoaded/
-	 * http://javascript.nwbox.com/ContentLoaded/MIT-LICENSE
-	 *
+	/**
+	 *	 Create iFrame`
 	 */
-	
-	// @win window reference
-	// @fn function reference
-	function contentLoaded(win, fn) {
-	
-		var done = false, top = true,
-	
-		doc = win.document, root = doc.documentElement,
-	
-		add = doc.addEventListener ? 'addEventListener' : 'attachEvent',
-		rem = doc.addEventListener ? 'removeEventListener' : 'detachEvent',
-		pre = doc.addEventListener ? '' : 'on',
-	
-		init = function(e) {
-			if (e.type == 'readystatechange' && doc.readyState != 'complete') return;
-			(e.type == 'load' ? win : doc)[rem](pre + e.type, init, false);
-			if (!done && (done = true)) fn.call(win, e.type || e);
-		},
-	
-		poll = function() {
-			try { root.doScroll('left'); } catch(e) { setTimeout(poll, 50); return; }
-			init('poll');
-		};
-	
-		if (doc.readyState == 'complete') fn.call(win, true);
-		else {
-			if (doc.createEventObject && root.doScroll) {
-				try { top = !win.frameElement; } catch(e) { }
-				if (top) poll();
-			}
-			doc[add](pre + 'DOMContentLoaded', init, false);
-			doc[add](pre + 'readystatechange', init, false);
-			win[add](pre + 'load', init, false);
+	var createIframe = function(callback){
+		if(qwery('#voilaframe').length !== 0){
+			deleteIframe();
 		}
+		var frame = document.createElement('iframe');
+		frame.setAttribute('id','voilaframe');
+		frame.style.width = 0;
+		frame.style.height = 0;
+		frame.style.visibility='hidden';
+		frame.style.borderWidth=0;
+		frame.style.position='absolute';
+		frame.style.left=-9999+'px';
+		frame.style.top=-9999+'px';
+		document.body.appendChild(frame);
+		if(callback){
+			callback({success: true});
+		}
+	};
 	
-	}
+	var deleteIframe = function(){
+		document.body.removeChild(qwery('#voilaframe')[0]);
+	};
 	
+	/**
+	 *	Args:
+	 *		url
+	 *		id
+	 *		inputs
+	 */
+	var createForm = function(args){
+		var v = this,
+			i = 0,
+			form = null;
+		
+		if(!args || !args.url || !args.id){
+			return false;
+		}
+		form = document.createElement('form');
+		form.setAttribute('id', args.id);
+		form.setAttribute('target', 'voilaframe');
+		form.setAttribute('method', 'POST');
+		form.setAttribute('action', args.url);
+		form.style.width = 0;
+		form.style.height = 0;
+		form.style.visibility='hidden';
+		form.style.borderWidth=0;
+		form.style.position='absolute';
+		form.style.left=-9999+'px';
+		form.style.top=-9999+'px';
+		
+		if(args && args.inputs){
+			for(i = args.inputs.length; i--;){
+				form.appendChild(createInput(args.inputs[i]));
+			}
+		}
+		
+		return form;
+	};
+	
+	var deleteForm = function(id){
+		document.body.removeChild(qwery('#'+id)[0]);
+	};
+	
+	/*
+		Args:
+			name
+			value
+	*/
+	var createInput = function(args){
+		var input = document.createElement('input');
+		input.setAttribute('type','hidden');
+		input.setAttribute('name', args.name);
+		input.setAttribute('value', args.value);
+
+		return input;
+	};
 	
 	return Voila;
 });
@@ -915,6 +974,7 @@
 		}
 		
 		function ThrowError(msg) {
+			console.log(msg);
 			try { publicAPI.onerror.call(publicAPI,msg,script_url); } catch (err) { throw new Error(msg); }
 		}
 
@@ -922,7 +982,7 @@
 			if ((this.readyState && this.readyState!=="complete" && this.readyState!=="loaded") || script_loaded) { return; }
 			this.onload = this.onreadystatechange = null; // prevent memory leak
 			script_loaded = true;
-			if (publicAPI.readyState !== 4) ThrowError("Script failed to load ["+script_url+"].");
+			if (publicAPI.readyState !== 4 && publicAPI.readyState === 2) ThrowError("Script failed to load ["+script_url+"].");
 			removeScript();
 		}
 		
