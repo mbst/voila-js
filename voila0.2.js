@@ -31,7 +31,7 @@
 			content: String - id or URI of the piece of content
 			hoverItems: Array - class / id's for the list of content
 			hoverTimeout: Int - milliseconds to wait before the hover event is fired
-			host: String - eg. https://voila-stage.metabroadcast.com 
+			host: String - eg. https://voila-stage.metabroadcast.com
 			trackingId: String - original tracking id
 			version: String - api version
 			logging: Bool - whether to enable logging or not
@@ -98,6 +98,7 @@
 		if(args && args.content){
 			this.content = args.content;
 		}
+		
 
 		// Set url of host voila
 		this.url = 'https://voila.metabroadcast.com';
@@ -134,8 +135,8 @@
 		}
 		
 		this.referrer = null;
-		if(window && window.location.href){
-			this.referrer = window.location.href;
+		if(document.referrer){
+			this.referrer = document.referrer ;
 		}
 		
 		this.logging = true;
@@ -264,7 +265,7 @@
 	
 	Voila.prototype.logLoad = function(callback){
 		var v = this,
-			inputs = null,
+			inputs = [{name: 'url', value: window.location.href}],
 			form = null,
 			myIFrame = document.getElementById('voilaframe'),
 			content = null;
@@ -272,7 +273,7 @@
 		createIframe();
 			
 		if(v.trackingId){
-			inputs = [{name: 'tracking_id', value: v.trackingId}];
+			inputs.push[{name: 'tracking_id', value: v.trackingId}];
 		}
 		if(v.content){
 			if(!inputs){
@@ -299,7 +300,7 @@
 	
 	Voila.prototype.logHover = function(args, callback){
 		var v = this,
-			inputs = [],
+			inputs = [{name: 'url', value: window.location.href}],
 			form = null,
 			content = v.content;
 			
