@@ -270,7 +270,6 @@
 		var v = this,
 			inputs = [{name: 'url', value: window.location.href}],
 			form = null,
-			myIFrame = document.getElementById('voilaframe'),
 			content = null;
 		
 		createIframe();
