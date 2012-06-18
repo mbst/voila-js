@@ -25,6 +25,7 @@
     this[name] = definition();
   }
 })('Voila', function(){
+	var formMessage = 'Submitted. Please check your browsers network log to confirm success.';
 	/*
 		Args:
 			apiKey: String - voila apikey
@@ -44,6 +45,15 @@
 			j = 0,					// Placeholder for array length subloops
 			hovering = null,		// Holder for hovering timeout
 			hoverTimeout = 250;	// Hover timeout default
+			
+		this.apiKey = null;
+		this.version = '1.0';
+		this.content = null;
+		this.url = 'https://voila.metabroadcast.com';
+		this.hoverItems = [];
+		this.trackingId = null;
+		this.referrer = null;
+		this.logging = true;
 			
 		/**
 		 *	Inner functions for use further down the script.
@@ -80,13 +90,11 @@
 		 */
 		 
 		// Set apiKey
-		this.apiKey = null;
 		if(args && args.apiKey){
 			this.apiKey = args.apiKey;
 		}
 		
 		// Set the version to 1.0
-		this.version = '1.0';
 		// If another version is supplied overwrite
 		if(args && args.version){
 			this.version = args.version;
@@ -94,14 +102,12 @@
 
 		
 		// Set content contentId (0) / contentUri (1)
-		this.content = null;
 		if(args && args.content){
 			this.content = args.content;
 		}
 		
 
 		// Set url of host voila
-		this.url = 'https://voila.metabroadcast.com';
 		if(args && args.host){
 			if(args && args.host.indexOf('http') === -1){
 				this.url = 'https://'+args.host;
@@ -111,7 +117,6 @@
 		}
 		
 		// Add event listeners to items on page
-		this.hoverItems = [];
 		if(args && args.hoverItems){
 			for(i = args.hoverItems.length; i--;){
 				eles = qwery(args.hoverItems[i]);
@@ -129,17 +134,14 @@
 		}
 		
 		// Add tracking id
-		this.trackingId = null;
 		if(args && args.trackingId){
 			this.parent = args.trackingId;
 		}
 		
-		this.referrer = null;
 		if(document.referrer){
 			this.referrer = document.referrer ;
 		}
 		
-		this.logging = true;
 		if(args && args.logging){
 			this.logging = args.logging;
 		}
@@ -151,28 +153,23 @@
 	Voila.prototype.pageLoad = function(callback){
 		var v = this;
 		v.getTracking(function(e){
-			if(e.error){
-				//console.log(e.error);
-			} else {
-				//console.log('done');
-				if(callback){
-					callback(e);
-				}
+			if(!e.error){
 				if(v.logging === true){
 					v.logLoad();
 				}
+			}
+			if(callback){
+				callback(e);
 			}
 		});
 	};
 		
 	Voila.prototype.setContentId = function(id){
 		this.content = id;
-		this.contentType = 0;
 	};
 	
 	Voila.prototype.setContentUri = function(uri){
 		this.content = uri;
-		this.contentType = 1;
 	};
 	
 	/**
@@ -183,19 +180,19 @@
 	 */
 	Voila.prototype.getContent = function(args, callback){
 		var v = this,
-			getContent = v.content,
+			content = v.content,
 			ajax = new jXHR(),
 			url = v.url+'/'+v.version+'/content?apiKey='+v.apiKey;
 			
 		
 		if(args && args.content){
-			getContent = args.content;
+			content = args.content;
 		}
 		
-		if(getContent.indexOf('http') !== -1){
-			url += '&uri='+getContent;
+		if(content.indexOf('http') !== -1){
+			url += '&uri='+content;
 		} else {
-			url += '&id='+getContent;
+			url += '&id='+content;
 		}
 		
 		if(args && args.annotations){
@@ -233,9 +230,6 @@
 		}
 		
 		ajax.onreadystatechange = function(data){
-			if(ajax.readyState === 2 && ajax.status !== 200){
-				//callback(ajax);
-			}
 			if(ajax.readyState === 4){
 				if(data.tracking_id){
 					v.trackingId = data.tracking_id;
@@ -296,7 +290,7 @@
 		
 		form.submit();
 		if(callback){
-			callback({success: 'Submitted. Please check your browsers logs to confirm successful logging'});
+			callback({success: formMessage});
 		}
 	};
 	
@@ -330,7 +324,7 @@
 		
 		form.submit();
 		if(callback){
-			callback({success: 'Submitted. Please check your browsers logs to confirm successful logging'});
+			callback({success: formMessage});
 		}
 	};
 	
@@ -355,7 +349,7 @@
 
 		form.submit();
 		if(callback){
-			callback({success: 'Submitted. Please check your browsers logs to confirm successful logging'});
+			callback({success: formMessage});
 		}
 	};
 	
@@ -384,7 +378,7 @@
 		
 		form.submit();
 		if(callback){
-			callback({success: 'Submitted. Please check your browsers logs to confirm successful logging'});
+			callback({success: formMessage});
 		}
 	};
 	
@@ -479,6 +473,7 @@
 		var v = this,
 			ajax = new jXHR(),
 			url = v.url+'/'+v.version+'/optout?apiKey='+v.apiKey+'&callback=?';
+			
 		ajax.onerror = function(msg,url){
 			if(callback){
 				callback({error: msg});
