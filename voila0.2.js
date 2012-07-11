@@ -72,9 +72,9 @@
 				}
 				v.logHover(content, function(e){
 					if(e.error){
-						console.log(e.error);
+						//console.log(e.error);
 					} else {
-						console.log(e.success);
+						//console.log(e.success);
 					}
 				});
 			}, hoverTimeout);
@@ -152,16 +152,24 @@
 	 */
 	Voila.prototype.pageLoad = function(callback){
 		var v = this;
-		v.getTracking(function(e){
-			if(!e.error){
-				if(v.logging === true){
-					v.logLoad();
+		if(v.content){
+			v.getTracking(function(e){
+				if(!e.error){
+					if(v.logging === true){
+						v.logLoad();
+					}
 				}
-			}
-			if(callback){
-				callback(e);
-			}
-		});
+				if(callback){
+					callback(e);
+				}
+			});
+		} else {
+			v.logLoad(function(e){
+				if(callback){
+					callback(e);
+				}
+			});
+		}
 	};
 		
 	Voila.prototype.setContentId = function(id){
@@ -972,7 +980,7 @@
 		}
 		
 		function ThrowError(msg) {
-			console.log(msg);
+			//console.log(msg);
 			try { publicAPI.onerror.call(publicAPI,msg,script_url); } catch (err) { throw new Error(msg); }
 		}
 
