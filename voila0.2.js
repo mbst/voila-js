@@ -164,9 +164,9 @@
 				}
 			});
 		} else {
-			v.logLoad(function(e){
+			v.logLoad(function(){
 				if(callback){
-					callback(e);
+					callback({success: null});
 				}
 			});
 		}
