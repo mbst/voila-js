@@ -432,7 +432,7 @@
 	Voila.prototype.cookieOptOut = function(callback){
 		var v = this,
 			ajax = new jXHR(),
-			url = v.url+'/'+v.version+'/optout/set?apiKey='+v.apiKey;
+			url = v.url+'/'+v.version+'/optout/set?apiKey='+v.apiKey+'&callback=?';
 			
 		ajax.onerror = function(msg,url){
 			if(callback){
@@ -442,7 +442,7 @@
 
 		ajax.onreadystatechange = function(data){
 			//console.log(ajax.readyState, data);
-			if(ajax.readyState === 2){
+			if(ajax.readyState === 4){
 				if(callback){
 					callback({success: data});
 				}
@@ -456,7 +456,7 @@
 	Voila.prototype.cookieOptIn = function(callback){
 		var v = this,
 			ajax = new jXHR(),
-			url = v.url+'/'+v.version+'/optout/remove?apiKey='+v.apiKey;
+			url = v.url+'/'+v.version+'/optout/remove?apiKey='+v.apiKey+'&callback=?';
 			
 		ajax.onerror = function(msg,url){
 			if(callback){
@@ -466,9 +466,9 @@
 
 		ajax.onreadystatechange = function(data){
 			//console.log(ajax.readyState, data);
-			if(ajax.readyState === 2){
+			if(ajax.readyState === 4){
 				if(callback){
-					callback({success: true});
+					callback({success: data});
 				}
 			}
 		}
