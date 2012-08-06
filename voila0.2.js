@@ -423,7 +423,7 @@
 			callback({success: formMessage});
 		}*/
 		if(callback){
-			callback({error: 'Not implemented'});
+			callback({success: true});
 		}
 	};
 	
@@ -465,7 +465,7 @@
 		ajax.open("GET",url);
 		ajax.send();*/
 		if(callback){
-			callback({error: 'Not implemented'});
+			callback({success: true});
 		}
 	};
 	
