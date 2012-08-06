@@ -336,7 +336,7 @@
 		}
 	};
 	
-	Voila.prototype.watching = function(args, callback){
+	Voila.prototype.logWatching = function(args, callback){
 		var v = this,
 			inputs = [{name: 'url', value: window.location.href}],
 			form = null,
@@ -370,7 +370,7 @@
 		}
 	};
 	
-	Voila.prototype.subscribe = function(args, callback){
+	Voila.prototype.watching = function(args, callback){
 		var v = this,
 			form = null,
 			content = v.content;
@@ -395,7 +395,7 @@
 		}
 	};
 	
-	Voila.prototype.unsubscribe = function(args, callback){
+	Voila.prototype.notWatching = function(args, callback){
 		var v = this,
 			inputs = [{name: 'http_action', value: 'DELETE'}],
 			content = v.content,
@@ -424,7 +424,7 @@
 		}
 	};
 	
-	Voila.prototype.currentlySubscribed = function(args, callback){
+	Voila.prototype.currentlyWatching = function(args, callback){
 		var v = this,
 			content = v.content,
 			ajax = new jXHR(),

@@ -336,7 +336,7 @@
 		}
 	};
 	
-	Voila.prototype.watching = function(args, callback){
+	Voila.prototype.logWatching = function(args, callback){
 		var v = this,
 			inputs = [{name: 'url', value: window.location.href}],
 			form = null,
@@ -370,7 +370,7 @@
 		}
 	};
 	
-	/*Voila.prototype.watching = function(args, callback){
+	Voila.prototype.watching = function(args, callback){
 		var v = this,
 			form = null,
 			content = v.content;
@@ -461,7 +461,7 @@
 		
 		ajax.open("GET",url);
 		ajax.send();
-	};*/
+	};
 	
 	Voila.prototype.cookieOptOut = function(callback){
 		var v = this,
