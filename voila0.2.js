@@ -422,6 +422,9 @@
 		if(callback){
 			callback({success: formMessage});
 		}*/
+		if(callback){
+			callback({error: 'Not implemented'});
+		}
 	};
 	
 	Voila.prototype.currentlyWatching = function(args, callback){
@@ -461,6 +464,9 @@
 		
 		ajax.open("GET",url);
 		ajax.send();*/
+		if(callback){
+			callback({error: 'Not implemented'});
+		}
 	};
 	
 	Voila.prototype.cookieOptOut = function(callback){
