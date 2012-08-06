@@ -336,7 +336,7 @@
 		}
 	};
 	
-	Voila.prototype.logWatching = function(args, callback){
+	Voila.prototype.watching = function(args, callback){
 		var v = this,
 			inputs = [{name: 'url', value: window.location.href}],
 			form = null,
@@ -370,7 +370,7 @@
 		}
 	};
 	
-	Voila.prototype.watching = function(args, callback){
+	/*Voila.prototype.watching = function(args, callback){
 		var v = this,
 			form = null,
 			content = v.content;
@@ -393,10 +393,10 @@
 		if(callback){
 			callback({success: formMessage});
 		}
-	};
+	};*/
 	
 	Voila.prototype.notWatching = function(args, callback){
-		var v = this,
+		/*var v = this,
 			inputs = [{name: 'http_action', value: 'DELETE'}],
 			content = v.content,
 			url = v.url+'/'+v.version+'/watching/me/@self/',
@@ -421,11 +421,11 @@
 		form.submit();
 		if(callback){
 			callback({success: formMessage});
-		}
+		}*/
 	};
 	
 	Voila.prototype.currentlyWatching = function(args, callback){
-		var v = this,
+		/*var v = this,
 			content = v.content,
 			ajax = new jXHR(),
 			watching = false,
@@ -460,7 +460,7 @@
 		}
 		
 		ajax.open("GET",url);
-		ajax.send();
+		ajax.send();*/
 	};
 	
 	Voila.prototype.cookieOptOut = function(callback){
