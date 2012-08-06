@@ -338,6 +338,40 @@
 	
 	Voila.prototype.watching = function(args, callback){
 		var v = this,
+			inputs = [{name: 'url', value: window.location.href}],
+			form = null,
+			content = v.content;
+			
+		createIframe();
+			
+		if(v.trackingId){
+			inputs.push({name: 'tracking_id', value: v.trackingId});
+		}
+		
+		if(args && args.content){
+			content = args.content;
+		}
+		
+		if(content.indexOf('http') !== -1){
+			inputs.push({name: 'x-purple-external-uri', value: content});
+		} else {
+			inputs.push({name: 'x-purple-id', value: content});
+		}
+				
+		if(v.referrer){
+			inputs.push({name: 'referrer', value: v.referrer});
+		}
+		
+		form = createForm({url: v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=content-play', id: 'voila-itemLog', inputs: inputs});
+		
+		form.submit();
+		if(callback){
+			callback({success: formMessage});
+		}
+	};
+	
+	/*Voila.prototype.watching = function(args, callback){
+		var v = this,
 			form = null,
 			content = v.content;
 			
@@ -427,7 +461,7 @@
 		
 		ajax.open("GET",url);
 		ajax.send();
-	};
+	};*/
 	
 	Voila.prototype.cookieOptOut = function(callback){
 		var v = this,
