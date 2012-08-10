@@ -155,6 +155,7 @@
 		if(v.content){
 			v.getTracking(function(e){
 				if(!e.error){
+					v.trackingId = e.success;
 					if(v.logging === true){
 						v.logLoad();
 					}
@@ -229,7 +230,7 @@
 	Voila.prototype.getTracking = function(callback){
 		var v = this,
 			ajax = new jXHR(),
-			url = v.url+'/'+v.version+'/tracking?apiKey='+v.apiKey;;
+			url = v.url+'/'+v.version+'/tracking?apiKey='+v.apiKey;
 			
 		ajax.onerror = function(msg,url){
 			if(callback){
@@ -277,7 +278,7 @@
 		createIframe();
 			
 		if(v.trackingId){
-			inputs.push[{name: 'tracking_id', value: v.trackingId}];
+			inputs.push({name: 'tracking_id', value: v.trackingId});
 		}
 		if(v.content){
 			if(!inputs){
