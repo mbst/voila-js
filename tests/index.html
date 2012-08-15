@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Tests</title>
+		<script src="../voila0.2.js"></script>
+		<script src="nodeunit.js"></script>
+		<script src="all.js"></script>
+	</head>
+	<body>
+		<h1 id="nodeunit-header">Voila Tests</h1>
+		<script>
+			var voila_noLogging = null,
+				voila_logging = null;
+				
+			nodeunit.run({
+				'init': init,
+				'pageLoad': pageLoad
+			});
+		</script>
+	</body>
+</html>

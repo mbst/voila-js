@@ -149,6 +149,13 @@
 		if(args && typeof args.logging !== 'undefined'){
 			this.logging = args.logging;
 		}
+		
+		if(this.logging === true){
+			var link = document.createElement('link');
+			link.setAttribute('rel', 'canonical');
+			link.setAttribute('href', window.location.href);
+			document.getElementsByTagName('head')[0].appendChild(link);
+		}
 	};
 	
 	/**
@@ -563,6 +570,8 @@
 		frame.style.left=-9999+'px';
 		frame.style.top=-9999+'px';
 		document.body.appendChild(frame);
+		
+		return;
 		if(callback){
 			callback({success: true});
 		}
