@@ -45,10 +45,6 @@
 			j = 0,					// Placeholder for array length subloops
 			hovering = null,		// Holder for hovering timeout
 			hoverTimeout = 250;	// Hover timeout default
-		
-		if(!args){
-			throw new Error('No arguments supplied');
-		}
 			
 		this.apiKey = null;
 		this.version = '1.0';
@@ -146,7 +142,7 @@
 			this.referrer = document.referrer ;
 		}
 		
-		if(args && typeof args.logging !== 'undefined'){
+		if(args && args.logging){
 			this.logging = args.logging;
 		}
 	};
@@ -553,8 +549,7 @@
 		if(qwery('#voilaframe').length !== 0){
 			deleteIframe();
 		}
-		var frame = document.createElement('iframe'),
-			content = '<!DOCTYPE html><html><head><link rel="canonical" href="'+window.location.href+'" /></head><body></body></html>';
+		var frame = document.createElement('iframe');
 		frame.setAttribute('id','voilaframe');
 		frame.style.width = 0;
 		frame.style.height = 0;
@@ -563,14 +558,7 @@
 		frame.style.position='absolute';
 		frame.style.left=-9999+'px';
 		frame.style.top=-9999+'px';
-		frame.src = 'about:blank';
 		document.body.appendChild(frame);
-		
-		frame.contentWindow.document.open('text/html', 'replace');
-		frame.contentWindow.document.write(content);
-		frame.contentWindow.document.close();
-		
-		return;
 		if(callback){
 			callback({success: true});
 		}

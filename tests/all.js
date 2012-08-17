@@ -75,8 +75,8 @@ this.pageLoad = {
 		v.pageLoad(function(e){
 			console.log(e);
 			test.ok(
-				e.success,
-				'Callback should work'
+				typeof e.success === 'string',
+				'Callback should work with content and logging and return a string as the tracking code'
 			);
 			
 			rl.add('this');
@@ -87,8 +87,8 @@ this.pageLoad = {
 		v.pageLoad(function(e){
 			console.log(e);
 			test.ok(
-				e.success,
-				'Callback should work'
+				typeof e.success === 'string',
+				'Callback should work with content, but without logging'
 			);
 			
 			rl.add('this');
@@ -99,13 +99,196 @@ this.pageLoad = {
 		v.logging = true;
 		v.pageLoad(function(e){
 			console.log(e);
-			test.ok(
+			test.strictEqual(
 				e.success,
-				'Callback should work'
+				null,
+				'Callback should work without content, but with logging'
 			);
 			
 			rl.add('this');
 		});
 		
 	}	
+};
+
+this.getContent = {
+	'getContent':function(test){
+		/*
+			1. Get content by init contentId
+			2. Get content by passing content: argument
+			3. Get content using annotation : description
+		*/
+		var v = new Voila({apiKey: '577d78df4b0a4788bd406edd300589c9', content: 'http://thespace.org/items/e0000372'}),
+			rl = new ReadyListener(8, function(){
+				test.done();
+			});
+		
+		test.expect(8);
+		
+		v.getContent(null, function(e){
+			console.log(e);
+			test.equal(
+				e.error,
+				null,
+				'a. There should be no errors'
+			);
+			rl.add('1. No errors');
+			
+			test.equal(
+				typeof e.success,
+				'object',
+				'a. Success should be an object'
+			);
+			rl.add('1. is object');
+		});
+		
+		v.getContent({content: 'http://thespace.org/items/e0000372'}, function(e){
+			console.log(e);
+			test.equal(
+				e.error,
+				null,
+				'b. There should be no errors'
+			);
+			rl.add('2. No errors');
+			
+			test.equal(
+				typeof e.success,
+				'object',
+				'b. Success should be an object'
+			);
+			rl.add('2. is object');
+		});
+		
+		v.getContent({annotations: ['description']}, function(e){
+			console.log(e);
+			test.equal(
+				e.error,
+				null,
+				'c. There should be no errors'
+			);
+			rl.add('3. No errors');
+			
+			test.equal(
+				typeof e.success,
+				'object',
+				'c. Success should be an object'
+			);
+			rl.add('3. is object');
+		});
+		
+		v.getContent({content: 'madeup'}, function(e){
+			console.log(e);
+			test.equal(
+				e.error,
+				null,
+				'c. There should be no errors'
+			);
+			rl.add('4. No errors');
+			
+			test.equal(
+				typeof e.success,
+				'object',
+				'c. Success should be an object'
+			);
+			rl.add('4. is object');
+		});
+	}
+};
+
+this.getTracking = {
+	'getTracking':function(test){
+		var v = new Voila({apiKey: '577d78df4b0a4788bd406edd300589c9'}),
+			rl = new ReadyListener(4, function(){
+				test.done();
+			});
+			
+		test.expect(rl.itemLength);
+			
+		// With parent
+		v.parent = 'h2';
+		v.getTracking(function(e){
+			console.log(e);
+			test.equal(
+				e.error,
+				null,
+				'a. There chould be no errors'
+			);
+			rl.add('1. No errors');
+			
+			test.equal(
+				typeof e.success,
+				'string',
+				'a. Success should be a string'
+			);
+			rl.add('1. is a string');
+		});
+		
+		// Without parent
+		v.parent = null;
+		v.getTracking(function(e){
+			console.log(e);
+			test.equal(
+				e.error,
+				null,
+				'b. There chould be no errors'
+			);
+			rl.add('2. No errors');
+			
+			test.equal(
+				typeof e.success,
+				'string',
+				'b. Success should be a string'
+			);
+			rl.add('2. is a string');
+		});
+		
+		setTimeout(function(){
+			for(var i = rl.itemLength - rl.haveItems; i--;){
+				test.ok(false, 'Timeout');
+				rl.add('Timeout');
+			}
+		}, 10000);
+	}
+};
+
+this.logLoad = {
+	'logLoad':function(test){
+		
+	}
+};
+
+this.logHover = {
+	'logHover':function(test){
+		
+	}
+};
+
+this.watching = {
+	'watching':function(test){
+		
+	}
+};
+
+this.notWatching = {
+	'notWatching':function(test){
+		
+	}
+};
+
+this.cookieOptOut = {
+	'cookieOptOut':function(test){
+		
+	}
+};
+
+this.cookieOptIn = {
+	'cookieOptIn':function(test){
+		
+	}
+};
+
+this.cookieOptStatus = {
+	'cookieOptStatus':function(test){
+		
+	}
 };
