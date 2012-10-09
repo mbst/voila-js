@@ -35,7 +35,8 @@
 			host: String - eg. https://voila-stage.metabroadcast.com
 			trackingId: String - original tracking id
 			version: String - api version
-			logging: Bool - whether to enable logging or not
+			logging: Bool - whether to enable logging or not,
+			userCookieName: String - cookie to look for
 		callback: Function - returns object
 	*/
 	var Voila = function(args, callback){
@@ -45,6 +46,10 @@
 			j = 0,					// Placeholder for array length subloops
 			hovering = null,		// Holder for hovering timeout
 			hoverTimeout = 250;	// Hover timeout default
+		
+		if(!args){
+			throw new Error('No arguments supplied');
+		}
 			
 		this.apiKey = null;
 		this.version = '1.0';
@@ -54,6 +59,10 @@
 		this.trackingId = null;
 		this.referrer = null;
 		this.logging = true;
+		this.userCookie = {
+			name: false,
+			value: false
+		};
 			
 		/**
 		 *	Inner functions for use further down the script.
@@ -142,8 +151,12 @@
 			this.referrer = document.referrer ;
 		}
 		
-		if(args && args.logging){
+		if(args && typeof args.logging !== 'undefined'){
 			this.logging = args.logging;
+		}
+		
+		if(args && args.userCookieName){
+			this.userCookie.name = args.userCookieName;
 		}
 	};
 	
@@ -208,6 +221,11 @@
 			url += '&annotations='+args.annotations.join(',');
 		}
 		
+		var cookie = v.getCookie(v.userCookie.name);
+		if(cookie){
+			url += '&X-User-Id='+cookie;
+		}
+		
 		ajax.onerror = function(msg,url){
 			if(callback){
 				callback({error: msg});
@@ -230,7 +248,7 @@
 	Voila.prototype.getTracking = function(callback){
 		var v = this,
 			ajax = new jXHR(),
-			url = v.url+'/'+v.version+'/tracking?apiKey='+v.apiKey;;
+			url = v.url+'/'+v.version+'/tracking?apiKey='+v.apiKey;
 			
 		ajax.onerror = function(msg,url){
 			if(callback){
@@ -264,6 +282,12 @@
 		if(v.parent){
 			url += '&parentTrackingId='+v.parent;
 		}
+		
+		var cookie = v.getCookie(v.userCookie.name);
+		if(cookie){
+			url += '&X-User-Id='+cookie;
+		}
+		
 		url += '&callback=?';
 		ajax.open("GET",url);
 		ajax.send();
@@ -289,6 +313,11 @@
 			} else {
 				inputs.push({name: 'x-purple-id', value: v.content});
 			}
+		}
+		
+		var cookie = v.getCookie(v.userCookie.name);
+		if(cookie){
+			inputs.push({name: 'X-User-Id', value: cookie});
 		}
 		
 		if(v.referrer){
@@ -324,6 +353,11 @@
 		} else {
 			inputs.push({name: 'x-purple-id', value: content});
 		}
+		
+		var cookie = v.getCookie(v.userCookie.name);
+		if(cookie){
+			inputs.push({name: 'X-User-Id', value: cookie});
+		}
 				
 		if(v.referrer){
 			inputs.push({name: 'referrer', value: v.referrer});
@@ -337,7 +371,7 @@
 		}
 	};
 	
-	Voila.prototype.logWatching = function(args, callback){
+	Voila.prototype.watching = function(args, callback){
 		var v = this,
 			inputs = [{name: 'url', value: window.location.href}],
 			form = null,
@@ -358,6 +392,11 @@
 		} else {
 			inputs.push({name: 'x-purple-id', value: content});
 		}
+		
+		var cookie = v.getCookie(v.userCookie.name);
+		if(cookie){
+			inputs.push({name: 'X-User-Id', value: cookie});
+		}
 				
 		if(v.referrer){
 			inputs.push({name: 'referrer', value: v.referrer});
@@ -371,7 +410,7 @@
 		}
 	};
 	
-	Voila.prototype.watching = function(args, callback){
+	/*Voila.prototype.watching = function(args, callback){
 		var v = this,
 			form = null,
 			content = v.content;
@@ -394,10 +433,10 @@
 		if(callback){
 			callback({success: formMessage});
 		}
-	};
+	};*/
 	
 	Voila.prototype.notWatching = function(args, callback){
-		var v = this,
+		/*var v = this,
 			inputs = [{name: 'http_action', value: 'DELETE'}],
 			content = v.content,
 			url = v.url+'/'+v.version+'/watching/me/@self/',
@@ -422,11 +461,14 @@
 		form.submit();
 		if(callback){
 			callback({success: formMessage});
+		}*/
+		if(callback){
+			callback({success: true});
 		}
 	};
 	
 	Voila.prototype.currentlyWatching = function(args, callback){
-		var v = this,
+		/*var v = this,
 			content = v.content,
 			ajax = new jXHR(),
 			watching = false,
@@ -461,7 +503,47 @@
 		}
 		
 		ajax.open("GET",url);
-		ajax.send();
+		ajax.send();*/
+		if(callback){
+			callback({success: true});
+		}
+	};
+	
+	Voila.prototype.suggestionsFeedback = function(args, callback){
+		var v = this,
+			inputs = [{name: 'url', value: window.location.href}],
+			form = null;
+			
+		createIframe();
+			
+		if(v.trackingId){
+			inputs.push({name: 'tracking_id', value: v.trackingId});
+		}
+		
+		if(args && args.id){
+			inputs.push({name: 'id', value: args.id});
+		}
+		
+		if(args && args.action){
+			inputs.push({name: 'action', value: args.actions});
+		}
+		
+		var cookie = v.getCookie(v.userCookie.name);
+		if(cookie){
+			inputs.push({name: 'X-User-Id', value: cookie});
+		}
+				
+		if(v.referrer){
+			inputs.push({name: 'referrer', value: v.referrer});
+		}
+		
+		
+		form = createForm({url: v.url+'/'+v.version+'/suggestions/feedback?apiKey='+v.apiKey, inputs: inputs});
+		
+		form.submit();
+		if(callback){
+			callback({success: formMessage});
+		}
 	};
 	
 	Voila.prototype.cookieOptOut = function(callback){
@@ -536,6 +618,59 @@
 		ajax.send();
 	};
 	
+	Voila.prototype.getCookie = function(name){
+		var v = this,
+			cookieName = v.userCookie.name,
+			cookies = document.cookie,
+			c = {},
+			cookie = false;
+			
+		if (name) {
+			cookieName = name;
+		}
+		
+		if (cookies.length > 0) {
+			
+			if (cookies.indexOf(';') !== -1) {
+			
+				cookies = cookies.split(';');
+				
+				for(var i = cookies.length; i--;){
+					if(cookies[i].substr(0, 1) === ' '){
+						cookies[i] = cookies[i].substr(1);
+					}
+					
+					if(cookies[i].indexOf('=') !== -1){
+						cookies[i] = cookies[i].split('=');
+						
+						var singleCookieName = cookies[i][0];
+						
+						c[singleCookieName] = false;
+						
+						cookies[i].splice(0, 1);
+											
+						if (cookies[i].length > 1) {
+							cookies[i] = cookies[i].join('=');
+						} else {
+							cookies[i] = cookies[i][0];
+						}
+						
+						c[singleCookieName] = cookies[i];
+					}
+				}
+				
+				if(c[name]){
+					cookie = c[name];
+				}
+				
+			}
+			
+		}
+		
+		return cookie;
+		
+	};
+	
 	/**
 	 *	 Create iFrame`
 	 */
@@ -543,7 +678,8 @@
 		if(qwery('#voilaframe').length !== 0){
 			deleteIframe();
 		}
-		var frame = document.createElement('iframe');
+		var frame = document.createElement('iframe'),
+			content = '<!DOCTYPE html><html><head><link rel="canonical" href="'+window.location.href+'" /></head><body></body></html>';
 		frame.setAttribute('id','voilaframe');
 		frame.style.width = 0;
 		frame.style.height = 0;
@@ -552,7 +688,14 @@
 		frame.style.position='absolute';
 		frame.style.left=-9999+'px';
 		frame.style.top=-9999+'px';
+		frame.src = 'about:blank';
 		document.body.appendChild(frame);
+		
+		frame.contentWindow.document.open('text/html', 'replace');
+		frame.contentWindow.document.write(content);
+		frame.contentWindow.document.close();
+		
+		return;
 		if(callback){
 			callback({success: true});
 		}

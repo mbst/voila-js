@@ -197,7 +197,7 @@ this.getContent = {
 
 this.getTracking = {
 	'getTracking':function(test){
-		var v = new Voila({apiKey: '577d78df4b0a4788bd406edd300589c9'}),
+		var v = new Voila({apiKey: '577d78df4b0a4788bd406edd300589c9', content: 'http://thespace.org/items/e0000372'}),
 			rl = new ReadyListener(4, function(){
 				test.done();
 			});
@@ -251,9 +251,8 @@ this.getTracking = {
 	}
 };
 
-this.logLoad = {
+/*this.logLoad = {
 	'logLoad':function(test){
-		
 	}
 };
 
@@ -291,4 +290,4 @@ this.cookieOptStatus = {
 	'cookieOptStatus':function(test){
 		
 	}
-};
+};*/
