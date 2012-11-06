@@ -571,7 +571,7 @@
 		}
 		
 		
-		form = createForm({url: v.url+'/'+v.version+'/suggestions/feedback?apiKey='+v.apiKey, id: 'voila-suggestionsFeedback', inputs: inputs});
+		form = createForm({url: v.url+'/'+v.version+'/suggestions/feedback/me/@self?apiKey='+v.apiKey, id: 'voila-suggestionsFeedback', inputs: inputs});
 		
 		form.onsubmit = function(){
 			// Timeout
