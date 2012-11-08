@@ -558,7 +558,7 @@
 		}
 		
 		if(args && args.action){
-			inputs.push({name: 'action', value: args.actions});
+			inputs.push({name: 'action', value: args.action});
 		}
 		
 		var cookie = v.getCookie(v.userCookie.name);
