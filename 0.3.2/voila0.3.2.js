@@ -303,62 +303,70 @@
 	
 	Voila.prototype.logLoad = function(callback){
 		var v = this,
-			inputs = [{name: 'url', value: window.location.href}],
-			form = null,
+			ajax = new jXHR(),
 			content = null,
-			frame = false;
-		
-		frame = createIframe();
-			
+			url = v.url;
+
+		ajax.timeout = v.timeout;	
+		ajax.onerror = function(msg,url){
+			if(callback){
+				callback({error: msg});
+			}
+		}
+
+		url = url + '/'	+ v.version+'/log?apiKey='+encodeURIComponent(v.apiKey)+'&event=page-load';
+
 		if(v.trackingId){
-			inputs.push({name: 'tracking_id', value: v.trackingId});
+			url += '&tracking_id=' + encodeURIComponent(v.trackingId);
+			//inputs.push({name: 'tracking_id', value: v.trackingId});
 		}
 		if(v.content){
 			if(!inputs){
 				inputs = [];
 			}
 			if(v.content.indexOf('http') !== -1){
-				inputs.push({name: 'x-purple-external-uri', value: v.content});
+				url += '&x-purple-external-uri=' + encodeURIComponent(v.content);
+				//inputs.push({name: 'x-purple-external-uri', value: v.content});
 			} else {
-				inputs.push({name: 'x-purple-id', value: v.content});
+				url += '&x-purple-id=' + encodeURIComponent(v.content);
+				//inputs.push({name: 'x-purple-id', value: v.content});
 			}
 		}
 		
 		var cookie = v.getCookie(v.userCookie.name);
 		if(cookie){
-			inputs.push({name: 'X-User-Id', value: cookie});
+			url += '&X-User-Id=' + encodeURIComponent(cookie);
+			//inputs.push({name: 'X-User-Id', value: cookie});
 		}
 		
 		if(v.referrer){
-			inputs.push({name: 'referrer', value: v.referrer});
+			url += '&referrer=' + encodeURIComponent(v.referrer);
+			//inputs.push({name: 'referrer', value: v.referrer});
 		}
+		
+		url += '&cb='+(new Date().getTime());
 
-		form = createForm({url: v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=page-load', id: 'voila-pageLog', inputs: inputs});
-		
-		form.onsubmit = function(){
-			// Timeout
-			setTimeout(function(){
-				frame.src = '';
-			}, v.timeout);
-		};
-		
-		form.submit();
-		
-		if(callback){
-			callback({success: formMessage});
-		}
+		ajax.open("GET",url);
+		ajax.send();
 	};
 	
 	Voila.prototype.logHover = function(args, callback){
 		var v = this,
-			inputs = [{name: 'url', value: window.location.href}],
-			form = null,
-			content = v.content;
-			
-		frame = createIframe();
-			
+			ajax = new jXHR(),
+			content = v.content,
+			url = v.url;
+		
+		ajax.timeout = v.timeout;	
+		ajax.onerror = function(msg,url){
+			if(callback){
+				callback({error: msg});
+			}
+		}
+
+		url = url + '/'	+ v.version+'/log?apiKey='+encodeURIComponent(v.apiKey)+'&event=tv-listings-hover';
+
 		if(v.trackingId){
-			inputs.push({name: 'tracking_id', value: v.trackingId});
+			url += '&tracking_id=' + encodeURIComponent(v.trackingId);
 		}
 		
 		if(args && args.content){
@@ -366,46 +374,47 @@
 		}
 		
 		if(content.indexOf('http') !== -1){
-			inputs.push({name: 'x-purple-external-uri', value: content});
+			url += '&x-purple-external-uri=' + encodeURIComponent(content);
+			//inputs.push({name: 'x-purple-external-uri', value: content});
 		} else {
-			inputs.push({name: 'x-purple-id', value: content});
+			url += '&x-purple-id=' + encodeURIComponent(content);
+			//inputs.push({name: 'x-purple-id', value: content});
 		}
 		
 		var cookie = v.getCookie(v.userCookie.name);
 		if(cookie){
-			inputs.push({name: 'X-User-Id', value: cookie});
+			url += '&X-User-Id=' + encodeURIComponent(cookie);
+			//inputs.push({name: 'X-User-Id', value: cookie});
 		}
 				
 		if(v.referrer){
-			inputs.push({name: 'referrer', value: v.referrer});
+			url += '&referrer=' + encodeURIComponent(v.referrer);
+			//inputs.push({name: 'referrer', value: v.referrer});
 		}
 		
-		form = createForm({url: v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=tv-listings-hover', id: 'voila-itemLog', inputs: inputs});
-		
-		form.onsubmit = function(){
-			// Timeout
-			setTimeout(function(){
-				frame.src = '';
-			}, v.timeout);
-		};
-		
-		form.submit();
-		
-		if(callback){
-			callback({success: formMessage});
-		}
+		url += '&cb='+(new Date().getTime());
+
+		ajax.open("GET",url);
+		ajax.send();
 	};
 	
 	Voila.prototype.watching = function(args, callback){
 		var v = this,
-			inputs = [{name: 'url', value: window.location.href}],
-			form = null,
-			content = v.content;
-			
-		frame = createIframe();
+			ajax = new jXHR(),
+			content = v.content,
+			url = v.url;
+		
+		ajax.timeout = v.timeout;	
+		ajax.onerror = function(msg,url){
+			if(callback){
+				callback({error: msg});
+			}
+		}
+
+		url = url + '/'	+ v.version+'/log?apiKey='+encodeURIComponent(v.apiKey)+'&event=content-play';
 			
 		if(v.trackingId){
-			inputs.push({name: 'tracking_id', value: v.trackingId});
+			url += '&tracking_id=' + encodeURIComponent(v.trackingId);
 		}
 		
 		if(args && args.content){
@@ -413,34 +422,28 @@
 		}
 		
 		if(content.indexOf('http') !== -1){
-			inputs.push({name: 'x-purple-external-uri', value: content});
+			url += '&x-purple-external-uri=' + encodeURIComponent(content);
+			//inputs.push({name: 'x-purple-external-uri', value: content});
 		} else {
-			inputs.push({name: 'x-purple-id', value: content});
+			url += '&x-purple-id=' + encodeURIComponent(content);
+			//inputs.push({name: 'x-purple-id', value: content});
 		}
 		
 		var cookie = v.getCookie(v.userCookie.name);
 		if(cookie){
-			inputs.push({name: 'X-User-Id', value: cookie});
+			url += '&X-User-Id=' + encodeURIComponent(cookie);
+			//inputs.push({name: 'X-User-Id', value: cookie});
 		}
 				
 		if(v.referrer){
-			inputs.push({name: 'referrer', value: v.referrer});
+			url += '&referrer=' + encodeURIComponent(v.referrer);
+			//inputs.push({name: 'referrer', value: v.referrer});
 		}
 		
-		form = createForm({url: v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=content-play', id: 'voila-itemLog', inputs: inputs});
-		
-		form.onsubmit = function(){
-			// Timeout
-			setTimeout(function(){
-				frame.src = '';
-			}, v.timeout);
-		};
-		
-		form.submit();
-		
-		if(callback){
-			callback({success: formMessage});
-		}
+		url += '&cb='+(new Date().getTime());
+
+		ajax.open("GET",url);
+		ajax.send();
 	};
 	
 	/*Voila.prototype.watching = function(args, callback){
@@ -544,47 +547,40 @@
 	
 	Voila.prototype.suggestionsFeedback = function(args, callback){
 		var v = this,
-			inputs = [{name: 'url', value: window.location.href}],
-			form = null;
+			url = v.url;
 			
-		frame = createIframe();
+		url = url+'/'+v.version+'/suggestions/feedback/me/@self?apiKey='+v.apiKey;
 			
 		if(v.trackingId){
-			inputs.push({name: 'tracking_id', value: v.trackingId});
+			url += '&tracking_id=' + encodeURIComponent(v.trackingId);
+			//inputs.push({name: 'tracking_id', value: v.trackingId});
 		}
 		
 		if(args && args.id){
-			inputs.push({name: 'id', value: args.id});
+			url += '&id=' + encodeURIComponent(args.id);
+			//inputs.push({name: 'id', value: args.id});
 		}
 		
 		if(args && args.action){
-			inputs.push({name: 'action', value: args.action});
+			url += '&action=' + encodeURIComponent(args.action);
+			//inputs.push({name: 'action', value: args.action});
 		}
 		
 		var cookie = v.getCookie(v.userCookie.name);
 		if(cookie){
-			inputs.push({name: 'X-User-Id', value: cookie});
+			url += '&X-User-Id=' + encodeURIComponent(cookie);
+			//inputs.push({name: 'X-User-Id', value: cookie});
 		}
 				
 		if(v.referrer){
-			inputs.push({name: 'referrer', value: v.referrer});
+			url += '&referrer=' + encodeURIComponent(v.referrer);
+			//inputs.push({name: 'referrer', value: v.referrer});
 		}
 		
-		
-		form = createForm({url: v.url+'/'+v.version+'/suggestions/feedback/me/@self?apiKey='+v.apiKey, id: 'voila-suggestionsFeedback', inputs: inputs});
-		
-		form.onsubmit = function(){
-			// Timeout
-			setTimeout(function(){
-				frame.src = '';
-			}, v.timeout);
-		};
-		
-		form.submit();
-		
-		if(callback){
-			callback({success: formMessage});
-		}
+		url += '&cb='+(new Date().getTime());
+
+		ajax.open("GET",url);
+		ajax.send();
 	};
 	
 	Voila.prototype.cookieOptOut = function(callback){
