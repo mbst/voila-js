@@ -17,13 +17,13 @@
  */
 
 (function (name, definition) {
-  if (typeof module !== 'undefined'){
-  	module.exports = definition();
-  } else if (typeof define === 'function' && typeof define.amd === 'object'){
-  	define(definition);
-  } else {
-    this[name] = definition();
-  }
+	if (typeof module !== 'undefined'){
+		module.exports = definition();
+	} else if (typeof define === 'function' && typeof define.amd === 'object'){
+		define(definition);
+	} else {
+		this[name] = definition();
+	}
 })('Voila', function(){
 	var formMessage = 'Submitted. Please check your browsers network log to confirm success.';
 	/*
@@ -237,7 +237,7 @@
 			if(callback){
 				callback({error: msg});
 			}
-		}
+		};
 		
 		ajax.onreadystatechange = function(data){
 			if(ajax.readyState === 4){
@@ -245,7 +245,7 @@
 					callback({success: data});
 				}
 			}
-		}
+		};
 	
 		url += '&callback=?';
 		ajax.open("GET",url);
@@ -262,7 +262,7 @@
 			if(callback){
 				callback({error: msg});
 			}
-		}
+		};
 		
 		ajax.onreadystatechange = function(data){
 			if(ajax.readyState === 4){
@@ -277,7 +277,7 @@
 					callback({error: 'No tracking id found'});
 				}
 			}
-		}
+		};
 		
 		if(v.content){
 			if(v.content.indexOf('http') !== -1){
@@ -305,6 +305,7 @@
 		var v = this,
 			ajax = new jXHR(),
 			content = null,
+			inputs = false,
 			url = v.url;
 
 		ajax.timeout = v.timeout;	
@@ -312,7 +313,7 @@
 			if(callback){
 				callback({error: msg});
 			}
-		}
+		};
 
 		url = url + '/'	+ v.version+'/log?apiKey='+encodeURIComponent(v.apiKey)+'&event=page-load';
 
@@ -361,7 +362,7 @@
 			if(callback){
 				callback({error: msg});
 			}
-		}
+		};
 
 		url = url + '/'	+ v.version+'/log?apiKey='+encodeURIComponent(v.apiKey)+'&event=tv-listings-hover';
 
@@ -593,7 +594,7 @@
 			if(callback){
 				callback({error: msg});
 			}
-		}
+		};
 
 		ajax.onreadystatechange = function(data){
 			//console.log(ajax.readyState, data);
@@ -602,7 +603,7 @@
 					callback({success: data});
 				}
 			}
-		}
+		};
 	
 		ajax.open("GET",url);
 		ajax.send();
@@ -618,7 +619,7 @@
 			if(callback){
 				callback({error: msg});
 			}
-		}
+		};
 
 		ajax.onreadystatechange = function(data){
 			//console.log(ajax.readyState, data);
@@ -627,7 +628,7 @@
 					callback({success: data});
 				}
 			}
-		}
+		};
 
 		ajax.open("GET",url);
 		ajax.send();
@@ -643,7 +644,7 @@
 			if(callback){
 				callback({error: msg});
 			}
-		}
+		};
 
 		ajax.onreadystatechange = function(data){
 			//console.log(ajax.readyState, data);
@@ -652,7 +653,7 @@
 					callback({success: data});
 				}
 			}
-		}
+		};
 		
 		ajax.open("GET", url);
 		ajax.send();
