@@ -10,16 +10,20 @@
  * https://github.com/ded/qwery
  * copyright Dustin Diaz & Jacob Thornton 2011
  * MIT License
+ * ---------------------
+ * jXHR.js (JSON-P XHR)
+ * v0.1 © Kyle Simpson
+ * MIT License
  */
 
 (function (name, definition) {
-  if (typeof module !== 'undefined'){
-  	module.exports = definition();
-  } else if (typeof define === 'function' && typeof define.amd === 'object'){
-  	define(definition);
-  } else {
-    this[name] = definition();
-  }
+	if (typeof module !== 'undefined'){
+		module.exports = definition();
+	} else if (typeof define === 'function' && typeof define.amd === 'object'){
+		define(definition);
+	} else {
+		this[name] = definition();
+	}
 })('Voila', function(){
 	var formMessage = 'Submitted. Please check your browsers network log to confirm success.';
 	/*
@@ -55,6 +59,10 @@
 		this.trackingId = null;
 		this.referrer = null;
 		this.logging = true;
+		this.userCookie = {
+			name: false,
+			value: false
+		};
 		this.timeout = 2000;
 			
 		/**
@@ -101,6 +109,10 @@
 			this.logging = args.logging;
 		}
 		
+		if(args && args.userCookieName){
+			this.userCookie.name = args.userCookieName;
+		}
+		
 		// Ajax timeout
 		if(args && args.timeout){
 			this.timeout = args.timeout;
@@ -109,148 +121,52 @@
 	
 	Voila.prototype.logLoad = function(callback){
 		var v = this,
-			inputs = [{name: 'url', value: window.location.href}],
-			form = null,
+			ajax = new jXHR(),
 			content = null,
-			frame = false;
-		
-		frame = createIframe();
-			
+			inputs = false,
+			url = v.url;
+
+		ajax.timeout = v.timeout;	
+		ajax.onerror = function(msg,url){
+			if(callback){
+				callback({error: msg});
+			}
+		};
+
+		url = url + '/'	+ v.version+'/log?apiKey='+encodeURIComponent(v.apiKey)+'&event=page-load';
+
 		if(v.trackingId){
-			inputs.push({name: 'tracking_id', value: v.trackingId});
+			url += '&tracking_id=' + encodeURIComponent(v.trackingId);
+			//inputs.push({name: 'tracking_id', value: v.trackingId});
 		}
 		if(v.content){
 			if(!inputs){
 				inputs = [];
 			}
 			if(v.content.indexOf('http') !== -1){
-				inputs.push({name: 'x-purple-external-uri', value: v.content});
+				url += '&x-purple-external-uri=' + encodeURIComponent(v.content);
+				//inputs.push({name: 'x-purple-external-uri', value: v.content});
 			} else {
-				inputs.push({name: 'x-purple-id', value: v.content});
+				url += '&x-purple-id=' + encodeURIComponent(v.content);
+				//inputs.push({name: 'x-purple-id', value: v.content});
 			}
-		}	
+		}
+		
+		var cookie = v.getCookie(v.userCookie.name);
+		if(cookie){
+			url += '&X-User-Id=' + encodeURIComponent(cookie);
+			//inputs.push({name: 'X-User-Id', value: cookie});
+		}
 		
 		if(v.referrer){
-			inputs.push({name: 'referrer', value: v.referrer});
+			url += '&referrer=' + encodeURIComponent(v.referrer);
+			//inputs.push({name: 'referrer', value: v.referrer});
 		}
+		
+		url += '&cb='+(new Date().getTime());
 
-		form = createForm({url: v.url+'/'+v.version+'/log?apiKey='+v.apiKey+'&event=page-load', id: 'voila-pageLog', inputs: inputs});
-		
-		form.onsubmit = function(){
-			// Timeout
-			setTimeout(function(){
-				frame.src = '';
-			}, v.timeout);
-		};
-		
-		form.submit();
-		
-		if(callback){
-			callback({success: formMessage});
-		}
-	};
-	
-	/**
-	 *	 Create iFrame`
-	 */
-	var createIframe = function(callback){
-		if(qwery('#voilaframe').length !== 0){
-			deleteIframe();
-		}
-		var frame = document.createElement('iframe'),
-			content = '<!DOCTYPE html><html><head><link rel="canonical" href="'+window.location.href+'" /></head><body></body></html>';
-		frame.setAttribute('id','voilaframe');
-		frame.name = 'voilaframe';
-		frame.style.width = 0;
-		frame.style.height = 0;
-		frame.style.visibility='hidden';
-		frame.style.borderWidth=0;
-		frame.style.position='absolute';
-		frame.style.left=-9999+'px';
-		frame.style.top=-9999+'px';
-		frame.src = 'about:blank';
-		
-		try {
-			frame.contentWindow.document.open('text/html', 'replace');
-			frame.contentWindow.document.write(content);
-			frame.contentWindow.document.close();
-		} catch(e){}
-					
-		document.body.appendChild(frame);
-		
-		frame.contentWindow.name = 'voilaframe';
-		
-		if(callback){
-			callback({success: frame});
-		}
-		return frame;
-	};
-	
-	var deleteIframe = function(){
-		document.body.removeChild(qwery('#voilaframe')[0]);
-	};
-	
-	/**
-	 *	Args:
-	 *		url
-	 *		id
-	 *		inputs
-	 */
-	var createForm = function(args){
-		var v = this,
-			i = 0,
-			form = null;
-		
-		if(!args || !args.url || !args.id){
-			return false;
-		}
-		
-		form = qwery('#'+args.id);
-		
-		if(form.length > 0){
-			deleteForm(args.id);
-		}
-		
-		form = document.createElement('form');
-		form.setAttribute('id', args.id);
-		form.setAttribute('target', 'voilaframe');
-		form.setAttribute('method', 'POST');
-		form.setAttribute('action', args.url+'&cb='+(new Date().getTime()));
-		form.style.width = 0;
-		form.style.height = 0;
-		form.style.visibility='hidden';
-		form.style.borderWidth=0;
-		form.style.position='absolute';
-		form.style.left=-9999+'px';
-		form.style.top=-9999+'px';
-		
-		if(args && args.inputs){
-			for(i = args.inputs.length; i--;){
-				form.appendChild(createInput(args.inputs[i]));
-			}
-		}
-		
-		document.body.appendChild(form);
-		
-		return form;
-	};
-	
-	var deleteForm = function(id){
-		document.body.removeChild(qwery('#'+id)[0]);
-	};
-	
-	/*
-		Args:
-			name
-			value
-	*/
-	var createInput = function(args){
-		var input = document.createElement('input');
-		input.setAttribute('type','hidden');
-		input.setAttribute('name', args.name);
-		input.setAttribute('value', args.value);
-
-		return input;
+		ajax.open("GET",url);
+		ajax.send();
 	};
 	
 	return Voila;
@@ -624,3 +540,89 @@
 
   return qwery
 });
+
+// jXHR.js (JSON-P XHR)
+// v0.1 © Kyle Simpson
+// MIT License
+
+(function(global){
+	var SETTIMEOUT = global.setTimeout, // for better compression
+		doc = global.document,
+		callback_counter = 0;
+		
+	global.jXHR = function() {
+		var script_url,
+			script_loaded,
+			jsonp_callback,
+			scriptElem,
+			publicAPI = null;
+			
+		function removeScript() { try { scriptElem.parentNode.removeChild(scriptElem); } catch (err) { } }
+			
+		function reset() {
+			script_loaded = false;
+			script_url = "";
+			removeScript();
+			scriptElem = null;
+			fireReadyStateChange(0);
+		}
+		
+		function ThrowError(msg) {
+			//console.log(msg);
+			try { publicAPI.onerror.call(publicAPI,msg,script_url); } catch (err) { throw new Error(msg); }
+		}
+
+		function handleScriptLoad() {
+			if ((this.readyState && this.readyState!=="complete" && this.readyState!=="loaded") || script_loaded) { return; }
+			this.onload = this.onreadystatechange = null; // prevent memory leak
+			script_loaded = true;
+			if (publicAPI.readyState !== 4 && publicAPI.readyState === 2) ThrowError("Script failed to load ["+script_url+"].");
+			removeScript();
+		}
+		
+		function fireReadyStateChange(rs,args) {
+			args = args || [];
+			publicAPI.readyState = rs;
+			if (typeof publicAPI.onreadystatechange === "function") publicAPI.onreadystatechange.apply(publicAPI,args);
+		}
+				
+		publicAPI = {
+			onerror:null,
+			onreadystatechange:null,
+			readyState:0,
+			open:function(method,url){
+				reset();
+				internal_callback = "cb"+(callback_counter++);
+				(function(icb){
+					global.jXHR[icb] = function() {
+						try { fireReadyStateChange.call(publicAPI,4,arguments); } 
+						catch(err) { 
+							publicAPI.readyState = -1;
+							ThrowError("Script failed to run ["+script_url+"]."); 
+						}
+						global.jXHR[icb] = null;
+					};
+				})(internal_callback);
+				script_url = url.replace(/=\?/,"=jXHR."+internal_callback);
+				fireReadyStateChange(1);
+			},
+			send:function(){
+				SETTIMEOUT(function(){
+					scriptElem = doc.createElement("script");
+					scriptElem.setAttribute("type","text/javascript");
+					scriptElem.onload = scriptElem.onreadystatechange = function(){handleScriptLoad.call(scriptElem);};
+					scriptElem.setAttribute("src",script_url);
+					doc.getElementsByTagName("head")[0].appendChild(scriptElem);
+				},0);
+				fireReadyStateChange(2);
+			},
+			setRequestHeader:function(){}, // noop
+			getResponseHeader:function(){return "";}, // basically noop
+			getAllResponseHeaders:function(){return [];} // ditto
+		};
+
+		reset();
+		
+		return publicAPI;
+	};
+})(window);
