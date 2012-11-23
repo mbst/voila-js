@@ -551,12 +551,12 @@
 			ajax = new jXHR(),
 			url = v.url;
 			
-                ajax.timeout = v.timeout;
-                ajax.onerror = function(msg,url){
-                        if(callback){
-                                callback({error: msg});
-                        }
+        ajax.timeout = v.timeout;
+        ajax.onerror = function(msg,url){
+                if(callback){
+                        callback({error: msg});
                 }
+        }
 
 		url = url+'/'+v.version+'/suggestions/feedback/me/@self?apiKey='+v.apiKey;
 			
