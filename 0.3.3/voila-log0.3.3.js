@@ -127,7 +127,7 @@
 			}
 		};
 
-		url = url + '/'	+ v.version+'/log?apiKey='+encodeURIComponent(v.apiKey)+'&event=page-load';
+		url = url + '/'	+ v.version+'/log?apiKey='+encodeURIComponent(v.apiKey)+'&event=page-load&url='+encodeURIComponent(window.location.href);
 
 		if(v.trackingId){
 			url += '&tracking_id=' + encodeURIComponent(v.trackingId);
@@ -144,12 +144,6 @@
 				url += '&x-purple-id=' + encodeURIComponent(v.content);
 				//inputs.push({name: 'x-purple-id', value: v.content});
 			}
-		}
-		
-		var cookie = v.getCookie(v.userCookie.name);
-		if(cookie){
-			url += '&X-User-Id=' + encodeURIComponent(cookie);
-			//inputs.push({name: 'X-User-Id', value: cookie});
 		}
 		
 		if(v.referrer){
