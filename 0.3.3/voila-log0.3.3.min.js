@@ -2,7 +2,7 @@
  * Voila Javascript Client API
  * https://github.com/mbst/voila-js
  * Provided by MetaBroadcast
- * v0.2
+ * v0.3.3
  *
  * Plugins and licenses.
  * ---------------------
