@@ -1,0 +1,1 @@
+javascript:(function () {"use strict";var a=window.location.href,b='https://voila.metabroadcast.com/1.0/content?id={id}&apiKey={apiKey}&annotations={annotations}',c,d = '<%apiKey%>',e = '<%annotations%>';a=a.split('http').join('').split('://').join('');a=a.split('/');c=a[2];b=b.split('{id}').join(c).split('{apiKey}').join(d).split('{annotations}').join(e);window.open(b);})();

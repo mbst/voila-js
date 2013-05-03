@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Voila Bookmarklet generator</title>
+        <style>
+            .line {
+                display: block;
+                float: left;
+                width: 100%;
+                margin: 5px 0;
+            }
+            label {
+                display: block;
+                float: left;
+                width: 200px;
+            }
+            input, select {
+                display: block;
+                float: left;
+                width: 300px;
+            }
+            button {
+                font-size: 18px;
+                margin: 10px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Generatorizoration</h1>
+        <div class="line">
+        <label>Client: </label><select id="client"><option value="radiotimes">RadioTimes</option></select>
+        </div>
+        <div class="line">
+        <label>Bookmarklet Title: </label><input id="title" type="text" />
+        </div>
+        <div class="line">
+        <label>API Key: </label><input id="apiKey" type="text" />
+        </div>
+        <div class="line">
+        <label>Annotations: </label><input id="annotations" type="text" />
+        </div>
+        <div class="line">
+        <button id="generate">Generate!</button>
+        </div>
+        
+        <h2>Output:</h2>
+        <a href="#" id="output" title="Bookmarklet">Bookmarklet</a>
+        
+        <script type="text/html" id="radiotimes">
+            javascript:(function () {"use strict";var a=window.location.href,b='https://voila.metabroadcast.com/1.0/content?id={id}&apiKey={apiKey}&annotations={annotations}',c,d = '<%apiKey%>',e = '<%annotations%>';a=a.split('http').join('').split('://').join('');a=a.split('/');c=a[2];b=b.split('{id}').join(c).split('{apiKey}').join(d).split('{annotations}').join(e);window.open(b);})();
+        </script>
+        
+        <script type="text/javascript">
+            var generateEle = document.getElementById('generate'),
+                outputEle = document.getElementById('output'),
+                titleEle = document.getElementById('title'),
+                clientEle = document.getElementById('client'),
+                apiKeyEle = document.getElementById('apiKey'),
+                annotationsEle = document.getElementById('annotations'),
+                templateEle,
+                
+                output,
+                template,
+                title,
+                client,
+                apiKey,
+                annotations;
+            
+            generate.addEventListener('click', function(e) {
+                e.preventDefault();
+                title = titleEle.value;
+                client = clientEle.value;
+                apiKey = apiKeyEle.value;
+                annotations = annotationsEle.value;
+                
+                templateEle = document.getElementById(client);
+                
+                if (!templateEle) {
+                    throw new Error('Client template doesn\'t exist.');
+                    return;
+                }
+                
+                template = templateEle.innerHTML;
+                
+                template = template.split('<%apiKey%>').join(apiKey).split('<%annotations%>').join(annotations);
+                
+                outputEle.href = template;
+                outputEle.title = title;
+                outputEle.innerHTML = title;
+            }, true);
+            
+            
+        </script>
+    </body>
+</html>
